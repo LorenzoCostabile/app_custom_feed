@@ -8,7 +8,7 @@ Documentos de contexto:
 
 - [`README.md`](README.md): puesta en marcha y uso.
 - [`docs/MVP.md`](docs/MVP.md): diseño del producto.
-- [`docs/DISENO.md`](docs/DISENO.md): filosofía, voz y reglas de interfaz.
+- [`docs/DESIGN.md`](docs/DESIGN.md): filosofía, voz y reglas de interfaz.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): fases y decisiones cerradas.
 - [`docs/ESTADO.md`](docs/ESTADO.md): estado real, deuda técnica y prioridades.
 
@@ -293,7 +293,7 @@ Reglas al modificar el motor:
 
 ## 11. Convenciones de UI
 
-La referencia vinculante es [`docs/DISENO.md`](docs/DISENO.md): principios de
+La referencia vinculante es [`docs/DESIGN.md`](docs/DESIGN.md): principios de
 producto, voz, estructura de pantallas, patrones de interacción y antipatrones.
 Las decisiones visuales (paleta, tipografía, composición) están abiertas y se
 describen como estado actual, no como dogma.
@@ -305,7 +305,7 @@ describen como estado actual, no como dogma.
 - Los datos de uso no salen de la app.
 - Formularios con `label`, estados pendientes y errores visibles; el detalle
   técnico se registra en el servidor.
-- El estado visual actual (tokens, tarjetas, botones) está en `DISENO.md` §4; si
+- El estado visual actual (tokens, tarjetas, botones) está en `DESIGN.md` §4; si
   lo cambias, actualiza ese documento en el mismo commit.
 
 ---

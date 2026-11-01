@@ -185,7 +185,7 @@ Deuda:
 
 - **Estética editorial sobria:** fondo papel `#faf9f6`, tinta `#1a1a1a`, acento
   verde `#2f5d50`, líneas `#e5e2db`. Es el estado actual, no una dirección
-  cerrada: ver [`DISENO.md`](DISENO.md).
+  cerrada: ver [`DESIGN.md`](DESIGN.md).
 - **Tipografía del sistema**, una sola columna `max-w-2xl`, tarjetas con borde
   fino.
 - **Principios visibles en la UI:** sin scroll infinito, sin métricas de uso, sin

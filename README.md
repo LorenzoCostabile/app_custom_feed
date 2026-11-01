@@ -5,13 +5,30 @@ tiempo y consumirlo deliberadamente. El flujo termina cuando has decidido, no
 cuando has consumido todo el contenido.
 
 Diseño del MVP: [`docs/MVP.md`](docs/MVP.md). Filosofía de diseño:
-[`docs/DISENO.md`](docs/DISENO.md). Plan por fases:
+[`docs/DESIGN.md`](docs/DESIGN.md). Plan por fases:
 [`docs/ROADMAP.md`](docs/ROADMAP.md). Estado actual y próximos pasos:
 [`docs/ESTADO.md`](docs/ESTADO.md).
 
 Si vas a modificar el proyecto (persona o agente), empieza por
 [`AGENTS.md`](AGENTS.md): reglas de arquitectura, comandos, secretos y
 definición de «hecho».
+
+### Trabajar con agentes
+
+El repositorio está pensado para retomarse sin contexto previo, desde cualquier
+máquina. Antes de tocar código, este es el orden de lectura:
+
+| Documento | Para qué sirve |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) | Comandos, arquitectura, secretos y definición de «hecho» |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Principios de producto y contrato de interfaz |
+| [`docs/MVP.md`](docs/MVP.md) | Alcance funcional |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Fases y decisiones cerradas |
+| [`docs/ESTADO.md`](docs/ESTADO.md) | Estado real, deuda técnica y prioridades |
+
+Los documentos forman parte del código: si un cambio altera una convención, se
+actualiza el documento en el mismo commit. Los secretos viven en `.env`, que no
+se versiona; al cambiar de equipo hay que restaurarlo a mano.
 
 ## Estado
 
