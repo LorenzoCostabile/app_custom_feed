@@ -142,4 +142,4 @@ La parte más trabajosa del diseño original (sección 2.3).
 
 Notificaciones de última hora, resúmenes automáticos, análisis ideológico,
 puntuaciones de credibilidad opacas, importación del historial de YouTube,
-perfiles psicológicos, filtrado colaborativo y telemetría de comportamiento.
+perfiles psicológicos, filtrado colaborativo y telemetría enviada a terceros.

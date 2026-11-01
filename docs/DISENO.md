@@ -24,18 +24,19 @@ tirada**, no la de un *feed*:
 - Tiene portada, secciones y un final explícito.
 - Alguien la compuso antes de que la leyeras, con criterio y con motivos.
 - No se actualiza sola mientras la lees.
-- No sabe si la has leído, cuánto has tardado ni qué has hecho después.
+- No envía a terceros lo que haces con ella: lo que ocurre aquí se queda aquí.
 
 ### El contrato
 
 1. **La edición termina.** Siempre hay un «Fin de la edición». No hay más abajo.
 2. **Aquí se decide; se consume fuera.** La app no reproduce vídeos ni mide
    consumo.
-3. **Cada recomendación se explica.** Si no hay motivo, no hay recomendación.
-4. **Nada se deduce de tu comportamiento.** Lo que la app sabe de ti lo has
-   escrito tú.
-5. **Tus datos son tuyos y están aislados.** Exportables, borrables, invisibles
-   para otras cuentas.
+3. **Cada recomendación declara su origen.** Puede venir de tus fuentes o de un
+   feed ajeno; lo que no se hace es ocultarlo ni disfrazarlo de criterio propio.
+4. **Tus datos no alimentan a terceros.** Puedes medirte, generar informes y
+   mejorar el motor con ellos; nunca se envían fuera ni perfilan a otras personas.
+5. **Tus datos están aislados.** Exportables, borrables, invisibles para otras
+   cuentas.
 
 ---
 
@@ -57,13 +58,20 @@ app es una mesa de decisión, no un reproductor.
 **Prohíbe:** reproductor embebido, autoplay, miniaturas grandes que inviten a
 quedarse, historial de reproducción.
 
-### 2.3. Todo tiene un motivo
+### 2.3. El origen se declara
 
-**Implica:** cada tarjeta muestra una frase en lenguaje natural que explica por
-qué está ahí, y el historial conserva el desglose de señales y la versión del
-algoritmo.
+No todas las recomendaciones nacen de una regla que podamos descomponer. Una
+fuente puede ser el feed de YouTube, con su propia selección opaca. Eso es
+legítimo: lo que no es aceptable es **ocultar de dónde viene**.
 
-**Prohíbe:** recomendaciones «mágicas», puntuaciones sin explicar, cajas negras.
+**Implica:** cada recomendación indica su procedencia (tus fuentes, descubrimiento,
+actualidad o el feed de una plataforma) y, cuando el motor la puntúa, muestra el
+motivo y conserva el desglose en el historial.
+
+**Prohíbe:** presentar como criterio propio lo que en realidad ha elegido un
+tercero, mezclar orígenes sin etiquetarlos e inventar una explicación que el motor
+no puede sostener. «No lo sabemos» también es una explicación válida.
+
 La puntuación se llama siempre **relevancia**, nunca «calidad» ni «fiabilidad».
 
 ### 2.4. La personalización se declara, no se deduce
@@ -71,29 +79,39 @@ La puntuación se llama siempre **relevancia**, nunca «calidad» ni «fiabilida
 **Implica:** fuentes, temas, formatos, duraciones y feedback se eligen de forma
 explícita. El motor solo usa esas señales.
 
-**Prohíbe:** inferir preferencias por tiempo de permanencia, clics, hora de
-acceso, frecuencia de apertura o reproducción. Nada de perfiles psicológicos ni
-«usuarios similares».
+**Prohíbe:** usar señales de comportamiento a espaldas de la persona. Hoy no se
+infieren preferencias por tiempo, clics, hora de acceso ni frecuencia. Si algún
+día se incorporan, deberán declararse, poder desactivarse y explicarse en la
+interfaz. Nada de perfiles psicológicos ni «usuarios similares».
 
-### 2.5. Nada de espejos
+### 2.5. Los datos se quedan aquí
 
-La app **no te devuelve métricas de ti mismo**.
+La app puede medirte **para ti**: informes, estadísticas y, en el futuro, mejores
+recomendaciones. Lo que no puede hacer es usar esos datos para alimentar a
+terceros ni para justificar retención.
 
-**Implica:** silencio sobre uso, tiempo, rachas y progreso.
+**Implica:** las métricas y gráficas internas son bienvenidas si sirven para
+entender el propio consumo o mejorar el motor. Se documentan y se pueden borrar.
 
-**Prohíbe:** gráficos de actividad, «has leído 12 de 40», «llevas 5 días
-seguidos», resúmenes semanales de comportamiento, notificaciones de retención.
+**Prohíbe:** enviar actividad a plataformas externas, analítica de terceros,
+perfiles compartidos entre usuarios y cualquier mecanismo cuyo objetivo sea que
+vuelvas antes (rachas, avisos de retención, «no te lo pierdas»).
 
-La única analítica admitida es la **operativa**: estado de ingesta y errores
-técnicos, visibles en Fuentes.
+Hoy no se mide nada. Si eso cambia, el cambio será explícito y local.
 
-### 2.6. Calma antes que estímulo
+### 2.6. Sin urgencia
 
-**Implica:** una sola columna, papel cálido, bordes finos, tipografía del sistema,
-sin animaciones ni color de marca a gran escala.
+La aplicación no compite por tu tiempo ni intenta que vuelvas antes.
 
-**Prohíbe:** degradados, sombras profundas, ilustraciones decorativas, animaciones
-de entrada, vídeo de fondo, *confetti*, emojis.
+**Implica:** el ritmo lo marcas tú; no hay cuentas atrás ni «última oportunidad».
+Lo que caduca, caduca sin dramatismo.
+
+**Prohíbe:** notificaciones de reactivación, urgencia fabricada, escasez falsa y
+mensajes que culpabilizan por no entrar.
+
+La dirección visual (tipografía, color, composición) **no está cerrada** y no
+forma parte de los principios. Lo que hay hoy es un punto de partida, no una
+obligación.
 
 ### 2.7. Determinismo y memoria
 
@@ -110,14 +128,6 @@ cifrados, exportación y borrado total.
 
 **Prohíbe:** cuentas compartidas, datos cruzados entre usuarios, telemetría de
 terceros, cookies de analítica.
-
-### 2.9. Una sola voz, en español llano
-
-**Implica:** interfaz, errores y documentación en español; identificadores de
-código en inglés. Frases cortas, sin jerga técnica en pantalla.
-
-**Prohíbe:** anglicismos innecesarios («feed», «track», «engagement»), mensajes
-culpabilizadores, signos de exclamación.
 
 ---
 
@@ -141,38 +151,27 @@ y no persuade.
 
 Reglas:
 
-- Errores: **qué pasó y qué puede hacer la persona**, sin códigos ni trazas.
-- Nada de mayúsculas gritadas ni de exclamaciones.
-- Sin emojis, sin iconos decorativos, sin «nuevo» como reclamo.
-- Los estados se nombran en pasado («Guardado», «Cookie borrada») o en presente
-  neutro («Fin de la edición»).
-
-### Microcopy canónico
-
-Texto que ya está en producción y que define el tono. Reutilízalo en lugar de
-inventar variantes:
-
-- Portada: «Tu edición de hoy», «Fin de la edición.» / «No hay más
-  recomendaciones hoy.»
-- Pie global: «Atención no mide tu tiempo, ni tu frecuencia de uso, ni tu
-  comportamiento.»
-- Biblioteca: «Lo que has decidido que merece tu tiempo.»
-- Hemeroteca: «Todas las publicaciones de tus fuentes, por consulta intencional.
-  Sin contadores de pendientes.»
-- Fuentes: «Aquí defines qué quieres seguir. La personalización es exclusivamente
-  explícita.»
-- Datos: «Atención no registra tiempo de reproducción, hora de acceso ni
-  frecuencia de apertura. Puedes exportar y borrar todo.»
-- Login: «Descubrimiento deliberado: elige, guarda y consume fuera de la
-  aplicación.»
+- Errores: la pantalla explica **qué pasó y qué puede hacer la persona**, mientras
+  el detalle técnico (mensaje original, pila, contexto) se registra en el
+  servidor. Nada de volcar trazas en la interfaz, pero nada de tragárselas
+  tampoco.
+- Toda acción relevante deja rastro: quién, qué, cuándo y con qué resultado. La
+  observabilidad no es opcional.
+- Evita las mayúsculas gritadas, las exclamaciones y el «nuevo» como reclamo.
+- No hay mensajes que culpen ni que metan prisa.
 
 ---
 
-## 4. Lenguaje visual
+## 4. Estado visual actual (provisional)
+
+Esta sección **describe lo que hay hoy**, no lo que debe ser. Sirve para que nadie
+rompa la interfaz por accidente y para saber qué habría que tocar si se decide
+cambiarla. La dirección visual no está cerrada: si se redefine, se actualiza esta
+sección y se aplica de forma coherente.
 
 ### 4.1. Paleta
 
-Definida en `tailwind.config.ts`. **No se usan hex sueltos en componentes.**
+Definida en `tailwind.config.ts`. Hoy no se usan hex sueltos en componentes.
 
 | Token | Valor | Uso |
 |---|---|---|
@@ -184,15 +183,14 @@ Definida en `tailwind.config.ts`. **No se usan hex sueltos en componentes.**
 | `bg-white/60` | blanco translúcido | Superficie de tarjetas sobre `paper` |
 | `text-red-700` | Tailwind | Solo errores y acciones destructivas |
 
-Semántica del color:
+Semántica actual del color:
 
-- **Verde (`accent`) = acción disponible o enlace.** No se usa para decorar ni
-  para estados.
-- **Rojo = error o destrucción.** Nunca para urgencia, ofertas o alertas.
+- **Verde (`accent`) = acción disponible o enlace.** Hoy no se usa para decorar.
+- **Rojo = error o destrucción.** Hoy no se usa para urgencia ni ofertas.
 - **Gris (`muted`) = información secundaria.** Si algo importante queda en gris,
-  es un error de jerarquía.
-- El color **nunca es el único portador de significado**: el estado va también en
-  el texto («Oculta», «Pausada», «Con error: …»).
+  suele ser un problema de jerarquía.
+- El color **no debería ser el único portador de significado**: conviene que el
+  estado vaya también en el texto («Oculta», «Pausada», «Con error: …»).
 
 ### 4.2. Tipografía
 
@@ -209,34 +207,37 @@ Una sola familia: `system-ui, -apple-system, Segoe UI, sans-serif`.
 | Metadatos | `text-xs text-muted` | Formato · duración · fuente, fechas |
 | Énfasis secundario | `text-sm text-ink/80` | Motivo de la recomendación |
 
-Reglas:
+Convenciones actuales:
 
-- **Sin negritas dentro del cuerpo** salvo el cierre de la edición.
-- Los metadatos van siempre en una sola línea separada por `·`.
-- El título nunca se trunca; la descripción de la hemeroteca sí (`line-clamp-3`).
-- No se usan tamaños arbitrarios: si hace falta uno nuevo, se añade aquí.
+- Sin negritas dentro del cuerpo salvo el cierre de la edición.
+- Los metadatos van en una sola línea separada por `·`.
+- El título no se trunca; la descripción de la hemeroteca sí (`line-clamp-3`).
+- La tabla es la referencia de lo que existe hoy; un tamaño nuevo se añade aquí.
 
 ### 4.3. Composición y espacio
 
-- Contenedor único `max-w-2xl` (672 px), `px-5 py-8`.
-- Una sola columna. Nunca dos columnas de contenido ni *sidebars*.
+- Contenedor `max-w-2xl` (672 px), `px-5 py-8`.
+- Hoy, una sola columna de contenido y sin *sidebars*.
 - Ritmo vertical con `gap-6` u `gap-8` entre bloques; `gap-3`/`gap-4` dentro.
 - Tarjetas: `rounded border border-line bg-white/60 p-4` (compactas `p-3`).
-- Separadores: `border-t border-line pt-4`, no cajas adicionales.
+- Separadores: `border-t border-line pt-4`.
 - En móvil todo se apila; los grupos de acciones usan `flex-wrap`.
 
-### 4.4. Superficies: borde, no sombra
+### 4.4. Superficies
 
-- La profundidad se expresa con **borde de 1 px**, no con sombras.
-- Radio pequeño (`rounded`, 4 px). Nada de píldoras ni círculos.
-- Sin imágenes, sin ilustraciones, sin avatares, sin portadas de vídeo.
+- Hoy la profundidad se expresa con borde de 1 px; no hay sombras.
+- Radio pequeño (`rounded`).
+- Hoy no hay imágenes, ilustraciones, avatares ni portadas de vídeo.
 - El único relleno de color sólido es el botón primario (`bg-accent text-white`).
 
-### 4.5. Sin iconografía
+Son decisiones de la versión actual, no invariantes: se pueden cambiar si la
+dirección visual se redefine.
 
-No hay set de iconos. Cuando hace falta una acción se escribe: «Guardar»,
-«Copiar enlace», «Abrir en FreeTube». Un icono sin texto obligaría a adivinar; el
-texto es más accesible y más sobrio.
+### 4.5. Iconografía
+
+Hoy no hay set de iconos: las acciones se escriben («Guardar», «Copiar enlace»,
+«Abrir en FreeTube»). Si se incorporan, deben ir acompañados de texto o de una
+etiqueta accesible.
 
 ---
 
@@ -249,24 +250,28 @@ Cabecera      marca + nombre de usuario + salir
               navegación (Edición · Historial · Biblioteca · Hemeroteca ·
               Colecciones · Fuentes [+ Usuarios si admin])
 Contenido     una columna, h1 + bloques
-Pie           declaración de no-medición
+Pie           declaración de privacidad (hoy: no-medición)
 ```
 
 - La navegación no marca la página activa (deuda conocida, ver §9).
 - «Usuarios» solo existe para administradores; no se muestra deshabilitado.
-- El pie es fijo en todas las páginas y es parte del contrato, no decoración.
+- El pie declara el compromiso de privacidad. Si algún día se añade medición
+  interna, ese texto debe actualizarse en el mismo cambio.
 
 ### 5.2. Tarjeta de recomendación
 
-Orden fijo, de arriba abajo:
+Orden actual, de arriba abajo:
 
 1. **Título** (`text-base font-medium`).
 2. **Metadatos**: `Formato · duración · fuente`.
-3. **Motivo**: una frase, `text-sm text-ink/80`.
-4. **Acciones**: guardar (secundaria) + abrir (enlace de texto).
+3. **Origen**: agrupador visible («De tus fuentes», «Descubrimiento»,
+   «Actualidad»).
+4. **Motivo**: una frase, `text-sm text-ink/80`; si lo eligió un tercero, se dice.
+5. **Acciones**: guardar (secundaria) + abrir (enlace de texto).
 
-La tarjeta no incluye resumen, miniatura, canal ni fecha de publicación: la
-edición debe leerse en segundos. El detalle está en la hemeroteca.
+Hoy la tarjeta no incluye resumen, miniatura, canal ni fecha de publicación: la
+edición debe leerse en segundos. El detalle está en la hemeroteca. Son decisiones
+revisables, no invariantes.
 
 ### 5.3. Jerarquía de acciones
 
@@ -285,7 +290,7 @@ Reglas:
   (`window.confirm`) y nunca son el botón por defecto.
 - Toda acción asíncrona muestra estado pendiente y deshabilita el botón; el
   resultado aparece **junto a la acción**, no en un *toast*.
-- Los errores se muestran en rojo y en texto, sin iconos.
+- Los errores se muestran junto al control y en texto.
 
 ### 5.4. Formularios
 
@@ -296,7 +301,7 @@ Reglas:
 - Los ajustes por fuente (mostrar, actualizar, tope, peso) se aplican al salir del
   campo (`onBlur`), con confirmación textual «Guardado».
 - No hay asistentes por pasos ni validación en tiempo real agresiva: se valida al
-  enviar y se explica el fallo en español.
+  enviar y se explica el fallo con claridad.
 
 ### 5.5. Navegación y paginación
 
@@ -312,7 +317,7 @@ Reglas:
 | Pantalla | Promesa | Lo que nunca muestra |
 |---|---|---|
 | Edición de hoy | «Esto es lo que merece tu tiempo hoy, y por qué» | Más de una tirada, scroll infinito, contadores |
-| Historial | «Puedes reconstruir cualquier edición pasada» | Ediciones reescritas o sin motivos |
+| Historial | «Puedes reconstruir cualquier edición pasada» | Ediciones reescritas o con el origen oculto |
 | Biblioteca | «Esto lo decidiste tú» | Recomendaciones, métricas de consumo |
 | Hemeroteca | «Todo lo publicado, si lo buscas» | Sugerencias intercaladas, orden por «relevancia» |
 | Colecciones | «Lo que ya tenías en YouTube» | Recomendaciones nuevas, reproducción |
@@ -355,6 +360,8 @@ Notas por pantalla:
 Reglas:
 
 - **Nunca un *toast* flotante** ni un mensaje que desaparezca antes de leerse.
+- Todo error se registra con traza completa (mensaje, contexto y pila si aplica)
+  en el servidor, aunque la pantalla muestre un texto breve.
 - Un error nunca borra lo que la persona había escrito.
 - Un fallo de una fuente no invalida la ingesta de las demás.
 - Los estados vacíos siempre ofrecen el siguiente paso.
@@ -423,15 +430,15 @@ Regla para lo nuevo: si no se puede usar con teclado, con lector de pantalla y a
 | Rachas, logros, puntos, niveles | *Gamification* = retención |
 | Notificaciones push de «nuevo contenido» | Reclamo de atención |
 | Autoplay o vídeo embebido | Consumo dentro de la app |
-| Miniaturas grandes y llamativas | Sesgo hacia el clic |
-| «Recomendado para ti» sin motivo | Caja negra |
+| «Recomendado para ti» sin declarar el origen | Caja negra |
 | Ordenar por «popularidad» | Métrica social, no personal |
 | Comentarios, likes, compartir | Métricas y ruido social |
-| Modo oscuro automático sin decisión | No es prioritario y añade superficie |
+| Enviar actividad a plataformas externas | Alimenta a terceros con tus datos |
 | *Toasts* efímeros para errores | Se pierden y no son accesibles |
-| Texto en inglés en la interfaz | Rompe la voz |
-| Emojis y signos de exclamación | Tono publicitario |
-| Sombras, degradados, glassmorphism | Estímulo visual innecesario |
+| Urgencia fabricada o escasez falsa | Presiona la decisión |
+
+Las decisiones puramente visuales (color, tipografía, sombras, iconos, imágenes,
+modo oscuro) **no están en esta lista**: la dirección estética sigue abierta.
 
 ---
 
@@ -440,19 +447,20 @@ Regla para lo nuevo: si no se puede usar con teclado, con lector de pantalla y a
 ### Cómo proponer un cambio
 
 1. **Nombra el principio** de §2 que el cambio sirve (o el antipatrón que elimina).
-2. **Describe el antes y el después** con el microcopy exacto.
+2. **Describe el antes y el después** con el texto exacto que verá la persona.
 3. **Comprueba los estados**: vacío, error, pendiente, éxito, móvil, teclado.
-4. **Reutiliza tokens y patrones** de §4 y §5 antes de inventar.
+4. **Parte de los patrones** de §5; el estilo visual de §4 es revisable.
 5. **Actualiza este documento** si cambia una regla, y `AGENTS.md` si cambia un
    comando o una convención.
 
 ### Checklist de revisión de UI
 
 - [ ] ¿La pantalla termina? ¿Hay un final o un siguiente paso claro?
-- [ ] ¿Cada recomendación tiene motivo visible?
-- [ ] ¿Se evita cualquier métrica de comportamiento?
-- [ ] ¿Los textos están en español, sin emojis ni exclamaciones?
-- [ ] ¿Se usan solo los tokens `ink/paper/muted/line/accent`?
+- [ ] ¿Cada recomendación declara su origen y, si el motor la puntuó, su motivo?
+- [ ] ¿Los datos de uso se quedan en la app?
+- [ ] ¿El texto es claro, sin culpar ni meter prisa?
+- [ ] ¿Cada acción relevante deja traza suficiente para depurar un fallo?
+- [ ] ¿Los errores muestran un mensaje comprensible y guardan el detalle técnico?
 - [ ] ¿Hay una sola acción primaria y las destructivas confirman?
 - [ ] ¿Los estados vacío/error/pendiente están resueltos con texto?
 - [ ] ¿Funciona a 360 px de ancho y a 200 % de zoom?
@@ -469,31 +477,34 @@ Si alguna respuesta es «no», la interfaz no está terminada.
 |---|---|---|
 | P0 | Legibilidad | Subir `text-xs` en metadatos y acciones; unificar formato de fecha |
 | P1 | Accesibilidad | `focus-visible`, `aria-current`, enlace de salto, `role="alert"` |
+| P1 | Observabilidad | Logs estructurados por acción y errores con traza; hoy solo hay mensajes en pantalla |
 | P1 | Feedback explícito | UI de «más de esto», «menos de esta fuente», «no me sirvió», con confirmación |
 | P1 | Gestión de fuentes | Editar y eliminar fuentes, importar/exportar OPML |
+| P2 | Informes personales | Estadísticas de consumo propias (gráficas, resúmenes) sin salir de la app; base para un motor más sofisticado |
+| P2 | Medición interna | Si se mide uso, hacerlo explícito, local, exportable y borrable |
 | P2 | PWA | Manifest, iconos, instalación, comportamiento sin conexión |
 | P2 | Móvil | Ocultar FreeTube en móvil; bloqueo real de reproducción |
-| P2 | Modo oscuro | Solo si se decide explícitamente; requiere tokens semánticos |
+| P2 | Dirección visual | Definir tipografía, color y composición cuando se decida; hoy es un punto de partida |
 | P2 | Onboarding | Primera cuenta: explicar el contrato sin convertirlo en tutorial |
 
 ---
 
 ## 13. Decisiones cerradas
 
+Solo se cierran decisiones de **producto y comportamiento**. Las visuales quedan
+abiertas hasta que se definan de forma explícita.
+
 | Decisión | Estado |
 |---|---|
-| Una sola columna, `max-w-2xl` | Cerrada |
-| Sin imágenes ni miniaturas | Cerrada |
-| Sin iconos; acciones con texto | Cerrada |
-| Bordes en lugar de sombras | Cerrada |
-| Cinco colores semánticos + rojo para error | Cerrada |
-| Español en interfaz, inglés en código | Cerrada |
-| Sin telemetría ni métricas de uso | Cerrada |
 | Edición finita con cierre explícito | Cerrada |
-| Motivo visible en cada recomendación | Cerrada |
+| Origen declarado y motivo visible (cuando el motor puntúa) | Cerrada |
 | Consumo fuera de la app (FreeTube/enlace) | Cerrada |
 | Sin scroll infinito; paginación explícita | Cerrada |
 | Sin *gamification* | Cerrada |
+| Sin telemetría de terceros; métricas internas permitidas | Cerrada |
+| Aislamiento total por usuario | Cerrada |
+| Datos exportables y borrables | Cerrada |
+| Toda acción importante deja traza técnica | Cerrada |
 
 ---
 

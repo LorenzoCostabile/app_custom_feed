@@ -297,7 +297,8 @@ docker compose --profile dev run --rm dev npm test
 ## Privacidad
 
 - Minimización de datos: fuentes, preferencias, guardados y feedback explícito.
-- Sin telemetría de comportamiento como señal de recomendación.
+- Sin telemetría de terceros: los datos no salen de la app. Una métrica interna
+  futura sería local, explícita y borrable.
 - Exportación (`/api/export`) y borrado total (`DELETE /api/data`) desde la
   pantalla de Fuentes.
 

@@ -184,7 +184,8 @@ Deuda:
 ## 7. Diseño y experiencia
 
 - **Estética editorial sobria:** fondo papel `#faf9f6`, tinta `#1a1a1a`, acento
-  verde `#2f5d50`, líneas `#e5e2db`.
+  verde `#2f5d50`, líneas `#e5e2db`. Es el estado actual, no una dirección
+  cerrada: ver [`DISENO.md`](DISENO.md).
 - **Tipografía del sistema**, una sola columna `max-w-2xl`, tarjetas con borde
   fino.
 - **Principios visibles en la UI:** sin scroll infinito, sin métricas de uso, sin
@@ -192,8 +193,8 @@ Deuda:
 - Portada agrupada por origen (seguidas / descubrimiento / actualidad), con motivo
   de selección y botón de guardar.
 - Navegación simple; administración solo visible para admin.
-- **Pendiente de diseño:** no hay PWA, ni manifest/iconos, ni bloqueo de
-  reproducción en móvil, ni modo oscuro.
+- **Pendiente de diseño:** definir la dirección visual, PWA, manifest/iconos,
+  bloqueo de reproducción en móvil.
 
 ---
 
@@ -263,7 +264,8 @@ Bien resuelto:
 - Secretos de Google y cookie cifrados con AES-256-GCM (`TOKEN_ENCRYPTION_KEY` de
   32 bytes).
 - **Exportación** JSON y **borrado total** de datos por usuario.
-- Sin telemetría ni analítica.
+- Sin telemetría de terceros ni analítica ajena. Hoy no se registran métricas de
+  uso; si se añaden, serán locales, explícitas y borrables.
 
 Riesgos:
 

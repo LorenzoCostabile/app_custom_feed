@@ -17,22 +17,24 @@ Documentos de contexto:
 ## 1. Qué es este proyecto
 
 Aplicación **multiusuario y autoalojada** para descubrir información, preparar una
-**edición diaria** con pocas recomendaciones explicadas y consumirlas fuera de la
-app (FreeTube o enlace). No mide tiempo de uso, no tiene scroll infinito ni
-telemetría. La personalización es **explícitamente declarada** por el usuario.
+**edición diaria** con pocas recomendaciones y consumirlas fuera de la app
+(FreeTube o enlace). No tiene scroll infinito ni envía datos a terceros. La
+personalización es **explícitamente declarada** por el usuario; medir el uso para
+informes propios es posible, siempre de forma local y transparente.
 
 Principios irrenunciables:
 
-1. **Sin telemetría ni analítica.** No registrar aperturas, tiempos, clics ni
-   frecuencia.
+1. **Sin telemetría de terceros.** No se envía actividad a plataformas externas ni
+   se instala analítica ajena. Las métricas internas son admisibles si son
+   locales, documentadas, exportables y borrables.
 2. **Aislamiento total por usuario.** Toda consulta y mutación se filtra por
    `user_id`.
 3. **Edición pequeña y terminable.** Nada de feeds infinitos.
-4. **Motivos visibles.** Cada ítem de la edición guarda `reason` y
-   `signalBreakdown`.
+4. **Origen y motivo visibles.** Cada ítem declara de dónde viene (fuente o feed)
+   y, si el motor lo puntuó, guarda `reason` y `signalBreakdown`.
 5. **Determinismo.** El motor no usa aleatoriedad; mismos datos → misma edición.
-6. **Idioma:** interfaz, mensajes de error y documentación en **español**.
-   Identificadores de código en inglés.
+6. **Observabilidad.** Toda acción relevante deja traza técnica suficiente para
+   depurar un fallo.
 
 ---
 
@@ -280,9 +282,10 @@ Reglas al modificar el motor:
 ## 10. Convenciones de API
 
 - `export const dynamic = "force-dynamic"` en rutas que tocan BD o sesión.
-- Validación con **Zod**; devolver `400` con `{ error: "..." }` en español.
+- Validación con **Zod**; devolver `400` con `{ error: "..." }` comprensible.
 - Códigos usados: `200`, `201`, `400`, `401`, `403`, `404`, `409`, `502`.
-- Errores de terceros: `502` con mensaje comprensible, sin volcar secretos.
+- Errores de terceros: `502` con mensaje comprensible, sin volcar secretos, y
+  traza completa registrada en el servidor.
 - No devuelvas filas de otros usuarios ni siquiera para comprobar existencia.
 - Mutaciones: verifica propiedad y usa transacciones cuando haya varias tablas.
 
@@ -290,18 +293,20 @@ Reglas al modificar el motor:
 
 ## 11. Convenciones de UI
 
-La referencia vinculante es [`docs/DISENO.md`](docs/DISENO.md): filosofía, voz,
-paleta, tipografía, anatomía de tarjetas, jerarquía de acciones y lista negra de
-antipatrones. Si una pantalla nueva no encaja, no se implementa.
+La referencia vinculante es [`docs/DISENO.md`](docs/DISENO.md): principios de
+producto, voz, estructura de pantallas, patrones de interacción y antipatrones.
+Las decisiones visuales (paleta, tipografía, composición) están abiertas y se
+describen como estado actual, no como dogma.
 
 - Server Components por defecto; `"use client"` solo para interacción.
-- Textos en español, tono sobrio, sin emojis.
-- Paleta Tailwind: `ink`, `paper`, `muted`, `line`, `accent`. Evita hex sueltos.
-- Tarjetas: `rounded border border-line bg-white/60 p-4`.
-- Botones primarios: `bg-accent text-white`; secundarios con borde.
-- Mantén la columna `max-w-2xl` y la estética editorial.
-- Nada de scroll infinito, contadores de uso ni métricas.
-- Formularios con `label`, estados `pending` y mensajes de error visibles.
+- Toda recomendación declara su origen y la edición termina con un final o un
+  siguiente paso.
+- Nada de scroll infinito, contadores de pendientes ni *gamification*.
+- Los datos de uso no salen de la app.
+- Formularios con `label`, estados pendientes y errores visibles; el detalle
+  técnico se registra en el servidor.
+- El estado visual actual (tokens, tarjetas, botones) está en `DISENO.md` §4; si
+  lo cambias, actualiza ese documento en el mismo commit.
 
 ---
 

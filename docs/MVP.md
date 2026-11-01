@@ -292,7 +292,8 @@ Invariantes:
 ## 8. Privacidad por diseño
 
 - Minimización de datos: solo fuentes, preferencias, guardados y feedback explícito.
-- Sin telemetría de comportamiento como señal de recomendación; los errores técnicos se registran aparte.
+- Sin telemetría de terceros como señal de recomendación; los errores técnicos se
+  registran aparte. Cualquier métrica interna futura será explícita y local.
 - Exportación y borrado totales.
 - Si en el futuro se usan embeddings vía API externa, se documentará y se preferirán modelos locales.
 
