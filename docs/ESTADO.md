@@ -284,10 +284,15 @@ Riesgos:
 - `docker/entrypoint.sh`: espera PostgreSQL, aplica migraciones y crea admin si
   hay variables.
 - `docker-compose.yml`: `db` + `app` + perfil `dev` con hot reload.
-- `docker-compose.prod.yml`: pensado para *custom app* de TrueNAS, secretos por
-  entorno, puerto configurable.
-- **No hay**: CI/CD, imagen publicada en Docker Hub, contenedor cron, copias de
-  seguridad automatizadas, HTTPS (se delega en el proxy del NAS).
+- `docker-compose.prod.yml`: despliegue en el NAS; imagen de GHCR, healthcheck,
+  `pull_policy: always` y límites de log.
+- **CI/CD** en GitHub Actions: `ci.yml` (tipos, lint, tests, migraciones, build y
+  construcción de la imagen) y `release.yml` (publica
+  `ghcr.io/lorenzocostabile/app_custom_feed` con `latest`, `sha-*` y semver al
+  etiquetar).
+- **Copias**: `scripts/db-backup.sh` y `scripts/db-restore.sh` (manuales).
+- **No hay**: contenedor cron, copias de seguridad programadas, HTTPS (se delega
+  en el proxy del NAS).
 - **Disco C: casi lleno** (~0,66 GB libres; `docker_data.vhdx` ~75 GB). Riesgo
   operativo real.
 
@@ -305,7 +310,8 @@ Verificado en la última sesión:
 
 Carencias:
 
-- Sin tests de integración ni E2E; sin CI.
+- Sin tests de integración ni E2E. La CI cubre tipos, lint, tests, migraciones y
+  build en cada push y PR.
 - Sin tests de aislamiento multiusuario.
 - Sin monitorización ni logs estructurados.
 
@@ -315,7 +321,7 @@ Carencias:
 
 | Fase | Estado |
 |---|---|
-| 0 · Multiusuario y despliegue | **Casi completa**: falta publicar imagen en Docker Hub |
+| 0 · Multiusuario y despliegue | **Completa**: CI/CD e imagen en GHCR; falta ejecutar el despliegue en el NAS |
 | 1 · YouTube | **Implementada**; verificación con cookie real pendiente |
 | 2 · Algoritmo y experiencia | **Parcial**: temas ya ponderan, historial/ingesta/config hechos; faltan feedback UI y CRUD de fuentes |
 | 3 · Plataforma | **Pendiente**: PWA, bloqueo móvil, cron, FreeTube |
@@ -331,8 +337,8 @@ Carencias:
    («cookie válida / caducada») y un fallback claro si InnerTube falla.
 2. **Cron real**: contenedor o tareas del NAS para ingesta horaria y edición a las
    07:00 **Europe/Madrid** (corregir el uso de UTC).
-3. **Publicar imagen** en Docker Hub + `docker-compose.prod.yml` probado en
-   TrueNAS + **backups** del volumen `pgdata`.
+3. **Desplegar en el NAS** con la imagen de GHCR y **programar backups** del
+   volumen `pgdata` (estado actual: scripts manuales).
 4. Resolver el **disco C:** (compactar `vhdx` o mover Docker a D:/F:).
 
 ### P1 — Completar el producto (2–4 semanas)

@@ -349,19 +349,36 @@ Y comprueba al menos:
 - Si toca el motor: genera una edición y revisa tamaño, motivos y topes.
 
 Estado actual de tests: **6 unitarios** del motor. No hay tests de integración,
-E2E, aislamiento multiusuario ni CI. Si añades lógica crítica, añade pruebas.
+E2E ni de aislamiento multiusuario. La CI ejecuta en cada push y PR:
+`typecheck`, `lint`, tests, migraciones contra un PostgreSQL real y `next build`.
+Si añades lógica crítica, añade pruebas.
 
 ---
 
-## 14. Git y repositorio
+## 14. Git, CI y despliegue
 
-- `.env`, `node_modules`, `.next`, `*.tsbuildinfo` están ignorados. **Nunca** los
-  commitees.
+Repositorio:
+
+- `.env`, `.env.*` (salvo `.env.example` y `.env.prod.example`), `node_modules`,
+  `.next`, `*.tsbuildinfo` están ignorados. **Nunca** los commitees.
 - Antes de commitear: `git status --short` y `git diff --cached`.
 - Repo privado; no subas secretos ni datos personales.
 - No reescribas historia ni hagas *force push* a `main`.
 - Mensajes de commit claros, en español.
 - Actualiza README/ROADMAP/ESTADO cuando cambie el comportamiento o el estado.
+
+CI/CD (GitHub Actions):
+
+- `.github/workflows/ci.yml`: en push a `main` y en PR; tipos, lint, tests,
+  migraciones y build, más una construcción de la imagen sin publicar.
+- `.github/workflows/release.yml`: cuando CI termina en verde en `main`, publica
+  `ghcr.io/lorenzocostabile/app_custom_feed` con `latest` y `sha-XXXXXXX`.
+  Un tag `vX.Y.Z` publica la versión.
+- No añadas secretos a los workflows: GHCR usa el `GITHUB_TOKEN` del propio run.
+- El NAS tira de `latest`; para reproducibilidad, fija `ATENCION_IMAGE` a una
+  versión o a un `sha-`.
+- Si tocas el `Dockerfile`, el `entrypoint` o las migraciones, la imagen no debe
+  publicarse hasta que CI pase: no lo saltes con un push directo a `main` roto.
 
 ---
 
@@ -376,7 +393,8 @@ E2E, aislamiento multiusuario ni CI. Si añades lógica crítica, añade pruebas
 - **Zona horaria**: la edición usa UTC; el cron previsto es `Europe/Madrid`.
   Corregir antes de automatizar.
 - **Disco C: casi lleno** en el entorno Windows; cuidado con builds y volúmenes.
-- **Sin cron, sin CI, sin imagen publicada, sin backups automáticos.**
+- **Sin cron real ni backups automáticos**: la imagen ya se publica y hay
+  scripts manuales de copia (`scripts/db-backup.sh`).
 - **Sin RLS**: el aislamiento depende de filtrar por `user_id` en cada consulta.
 
 ---
@@ -385,9 +403,9 @@ E2E, aislamiento multiusuario ni CI. Si añades lógica crítica, añade pruebas
 
 1. Desbloquear y estabilizar YouTube (cookie válida, estado visible, fallback).
 2. Cron real: ingesta horaria y edición a las 07:00 `Europe/Madrid`.
-3. Publicar imagen, desplegar en TrueNAS y automatizar backups.
+3. Desplegar en TrueNAS y automatizar backups del volumen `pgdata`.
 4. UI de feedback y CRUD de fuentes.
-5. Tests de aislamiento/integración + CI.
+5. Tests de aislamiento e integración dentro de la CI existente.
 6. PWA, bloqueo de vídeo en móvil y descubrimiento de fuentes.
 
 No añadas funciones nuevas antes de cerrar los puntos 1–3 salvo petición expresa.

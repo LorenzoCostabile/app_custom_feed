@@ -182,29 +182,81 @@ responsabilidad. Si caduca la sesión, vuelve a pegar la cookie.
 
 ### Despliegue en TrueNAS Scale
 
-Publica la imagen en Docker Hub y usa [`docker-compose.prod.yml`](docker-compose.prod.yml)
-como *custom app*:
+La imagen se publica sola en GitHub Container Registry (GHCR) desde
+[`.github/workflows/release.yml`](.github/workflows/release.yml):
 
-```bash
-docker build -t TU_USUARIO/atencion:0.2.0 .
-docker push TU_USUARIO/atencion:0.2.0
+```
+ghcr.io/lorenzocostabile/app_custom_feed
 ```
 
-Configura en la app del NAS:
+| Etiqueta | Cuándo se publica |
+|---|---|
+| `latest` | cada push a `main` con CI en verde |
+| `sha-XXXXXXX` | cada push; sirve para volver a un commit concreto |
+| `X.Y.Z` / `X.Y` | al empujar un tag `vX.Y.Z` |
 
-- `ATENCION_IMAGE` con tu imagen (`TU_USUARIO/atencion:0.2.0`).
-- `DATABASE_URL` (o deja el servicio `db` del compose).
-- `ADMIN_EMAIL`, `ADMIN_PASSWORD` (solo la primera vez).
-- `SESSION_COOKIE_SECURE=true` si el proxy del NAS sirve por HTTPS.
-- Puerto interno `3000`; apunta el proxy inverso del NAS al puerto publicado.
-- Un volumen persistente para PostgreSQL.
-
-Detén los servicios con `Ctrl+C` o:
+**1. Autenticar el NAS en GHCR** (solo si el paquete sigue privado). Crea un
+token en GitHub → *Settings → Developer settings → Personal access tokens* con
+permiso `read:packages` y ejecuta en el NAS:
 
 ```bash
-docker compose down          # detiene (conserva los datos)
-docker compose down -v       # detiene y borra el volumen de datos
+echo "TU_TOKEN" | docker login ghcr.io -u LorenzoCostabile --password-stdin
 ```
+
+**2. Preparar el entorno** en un directorio persistente del pool:
+
+```bash
+mkdir -p /mnt/tank/apps/atencion && cd /mnt/tank/apps/atencion
+cp /ruta/al/repo/docker-compose.prod.yml .
+cp /ruta/al/repo/.env.prod.example .env
+# edita .env: POSTGRES_PASSWORD, SESSION_COOKIE_SECURE, TOKEN_ENCRYPTION_KEY…
+```
+
+**3. Levantar:**
+
+```bash
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+curl -fsS http://127.0.0.1:3000/health
+```
+
+**4. Proxy inverso del NAS** apuntando a `http://IP-del-NAS:3000`. Si sirves por
+HTTPS, deja `SESSION_COOKIE_SECURE=true`; si entras por HTTP, ponlo en `false` o
+el login no funcionará.
+
+- **Actualizar:** `pull` y `up -d`. La imagen nueva se aplica sola al recrear el
+  contenedor.
+- **Volver atrás:** fija `ATENCION_IMAGE` a una etiqueta `sha-…` o a una versión y
+  repite los dos comandos.
+- **Apps → Custom App (YAML):** si prefieres pegar el compose en la interfaz,
+  sustituye las variables `${…}` por sus valores literales; la app de TrueNAS no
+  lee el archivo `.env`.
+
+Detén los servicios con:
+
+```bash
+docker compose -f docker-compose.prod.yml down       # conserva los datos
+docker compose -f docker-compose.prod.yml down -v    # borra el volumen
+```
+
+### Mover los datos de este equipo al NAS
+
+La base de datos vive en el volumen `pgdata`, no en la carpeta del proyecto. Con
+los servicios del equipo de origen levantados:
+
+```bash
+COMPOSE_FILE=docker-compose.yml scripts/db-backup.sh
+```
+
+Copia `backups/atencion-*.sql.gz` al NAS y, con el compose de producción
+arrancado y la base todavía vacía:
+
+```bash
+scripts/db-restore.sh backups/atencion-20260101-070000.sql.gz
+```
+
+Conserva el mismo `TOKEN_ENCRYPTION_KEY`: si cambia, los tokens de Google y la
+cookie de YouTube guardados dejan de descifrarse.
 
 ### Modo desarrollo (recarga en caliente)
 
@@ -220,9 +272,29 @@ Monta el código del repositorio dentro del contenedor y ejecuta `next dev`.
 Dockerfile                    Imagen de la aplicación (build de producción)
 docker/entrypoint.sh          Espera BD, migra y crea el admin inicial
 docker-compose.yml            Servicios db, app y dev (perfil "dev")
-docker-compose.prod.yml       Custom app para TrueNAS (imagen de Docker Hub)
+docker-compose.prod.yml       Despliegue en el NAS (imagen de GHCR)
+.env.prod.example             Variables del despliegue (copiar como .env)
+scripts/db-backup.sh          Copia de la base de datos
+scripts/db-restore.sh         Restauración en una base vacía
 .dockerignore
 ```
+
+## CI/CD
+
+`.github/workflows/ci.yml` — en cada push a `main` y en cada pull request:
+comprobación de tipos, lint, tests del motor, migraciones contra un PostgreSQL
+real y `next build`. Después construye la imagen Docker sin publicarla, para
+detectar un Dockerfile roto antes de mezclar.
+
+`.github/workflows/release.yml` — cuando CI termina en verde en `main`, publica la
+imagen en GHCR con `latest` y `sha-XXXXXXX`. Un tag publica además la versión:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+No hay secretos que configurar: GHCR usa el `GITHUB_TOKEN` del propio workflow.
 
 ## Trabajos programados (ingesta y edición)
 
@@ -244,6 +316,10 @@ Windows apuntando a esos comandos. Ejemplo de cron cada hora y cada mañana:
 0 * * * *  docker compose -f /ruta/atencion/docker-compose.yml run --rm app npm run ingest
 0 7 * * *  docker compose -f /ruta/atencion/docker-compose.yml run --rm app npm run edition
 ```
+
+En el NAS cambia el archivo por `docker-compose.prod.yml`. Conviene que el cron
+trabaje en `Europe/Madrid` (`CRON_TZ=Europe/Madrid`), igual que la hora de la
+edición.
 
 ## Alternativa sin Docker
 

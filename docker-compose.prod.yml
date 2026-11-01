@@ -1,10 +1,24 @@
+# Despliegue de producción (TrueNAS Scale o cualquier Docker Engine con compose).
+#
+# La imagen se publica automáticamente en GHCR desde GitHub Actions:
+#   ghcr.io/lorenzocostabile/app_custom_feed
+# Ver .github/workflows/release.yml.
+#
+# Uso:
+#   cp .env.prod.example .env      # y rellena los valores
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Los datos viven en el volumen `pgdata`; las copias se hacen con
+# scripts/db-backup.sh.
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: atencion
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-atencion}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en el archivo .env}
       POSTGRES_DB: atencion
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -13,22 +27,29 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   app:
-    image: ${ATENCION_IMAGE:-TU_USUARIO/atencion:0.2.0}
+    image: ${ATENCION_IMAGE:-ghcr.io/lorenzocostabile/app_custom_feed:latest}
     restart: unless-stopped
+    pull_policy: always
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://atencion:${POSTGRES_PASSWORD:-atencion}@db:5432/atencion
-      INGEST_USER_AGENT: "Atencion/0.2 (personal feed reader)"
-      EDITION_SIZE: "10"
-      CANDIDATE_WINDOW_DAYS: "14"
-      REPEAT_COOLDOWN_DAYS: "7"
+      DATABASE_URL: postgres://atencion:${POSTGRES_PASSWORD}@db:5432/atencion
+      INGEST_USER_AGENT: ${INGEST_USER_AGENT:-Atencion/0.2 (personal feed reader)}
+      EDITION_SIZE: ${EDITION_SIZE:-10}
+      CANDIDATE_WINDOW_DAYS: ${CANDIDATE_WINDOW_DAYS:-14}
+      REPEAT_COOLDOWN_DAYS: ${REPEAT_COOLDOWN_DAYS:-7}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_NAME: ${ADMIN_NAME:-Administrador}
+      # true solo si sirves la app por HTTPS; en HTTP el login no funciona.
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -37,11 +58,31 @@ services:
       TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
     ports:
       - "${APP_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-# Ingesta y edición programadas (Fase 3): usa las tareas programadas del NAS o
-# un servicio cron propio ejecutando:
+# Ingesta y edición programadas: aún no hay contenedor de cron. Mientras tanto,
+# desde la carpeta del compose:
 #   docker compose -f docker-compose.prod.yml run --rm app npm run ingest
 #   docker compose -f docker-compose.prod.yml run --rm app npm run edition
+# o usa el Programador de tareas del NAS.
 
 volumes:
   pgdata:

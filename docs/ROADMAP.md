@@ -16,7 +16,7 @@ YouTube** vía `youtubei.js` (cookie de sesión cifrada).
 
 | Dimensión | Decisión |
 |-----------|----------|
-| Despliegue | NAS TrueNAS Scale como *custom app*; imagen en Docker Hub; proxy inverso del NAS |
+| Despliegue | NAS TrueNAS Scale como *custom app*; imagen en GHCR publicada por GitHub Actions; proxy inverso del NAS |
 | Usuarios | Multiusuario, admin crea cuentas, datos totalmente aislados |
 | Autenticación | Usuario + contraseña (hash), sesión con cookie |
 | Cuenta de YouTube | OAuth por usuario, token guardado, re-sincronización diaria + botón manual |
@@ -48,7 +48,9 @@ aplicación se pueda instalar en el NAS.
 - [x] Alta de usuarios desde la interfaz (solo admin) y *bootstrap* del primer
       administrador por variables de entorno.
 - [x] Endpoint `/health` para el proxy inverso.
-- [ ] Imagen publicada en Docker Hub y compose de *custom app* para TrueNAS.
+- [x] Imagen publicada en GHCR por GitHub Actions (`ci.yml` + `release.yml`) y
+      compose de despliegue (`docker-compose.prod.yml`) listo para TrueNAS.
+- [ ] Despliegue efectivo en el NAS y copias de seguridad programadas.
 
 Criterios de aceptación:
 

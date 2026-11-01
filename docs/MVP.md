@@ -13,7 +13,7 @@ incorpora la cuenta de YouTube. Estas son las decisiones vigentes:
 
 | Dimensión | Decisión v0.2 |
 |-----------|---------------|
-| Despliegue | NAS TrueNAS Scale, como *custom app*; imagen en Docker Hub; proxy inverso del NAS |
+| Despliegue | NAS TrueNAS Scale, como *custom app*; imagen en GHCR publicada por GitHub Actions; proxy inverso del NAS |
 | Usuarios | Multiusuario con datos **totalmente aislados**; el admin crea las cuentas |
 | Autenticación | Usuario + contraseña (hash), sesión con cookie |
 | Cuenta de YouTube | OAuth por usuario, token guardado y re-sincronización diaria + botón manual |
