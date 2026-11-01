@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: atencion
+      POSTGRES_PASSWORD: atencion
+      POSTGRES_DB: atencion
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atencion -d atencion"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://atencion:atencion@db:5432/atencion
+      INGEST_USER_AGENT: "Atencion/0.2 (personal feed reader)"
+      EDITION_SIZE: "10"
+      CANDIDATE_WINDOW_DAYS: "14"
+      REPEAT_COOLDOWN_DAYS: "7"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrador}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      YOUTUBE_REDIRECT_URI: ${YOUTUBE_REDIRECT_URI:-http://localhost:3000/api/youtube/callback}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+    ports:
+      - "3000:3000"
+
+  # Opcional: recarga en caliente para desarrollo.
+  # Uso: docker compose --profile dev up dev
+  dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      target: deps
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://atencion:atencion@db:5432/atencion
+      INGEST_USER_AGENT: "Atencion/0.2 (personal feed reader)"
+      EDITION_SIZE: "10"
+      CANDIDATE_WINDOW_DAYS: "14"
+      REPEAT_COOLDOWN_DAYS: "7"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrador}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      YOUTUBE_REDIRECT_URI: ${YOUTUBE_REDIRECT_URI:-http://localhost:3000/api/youtube/callback}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: sh -c "npm run db:migrate && npm run db:bootstrap && npm run dev"
+
+volumes:
+  pgdata:

@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: atencion
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-atencion}
+      POSTGRES_DB: atencion
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atencion -d atencion"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  app:
+    image: ${ATENCION_IMAGE:-TU_USUARIO/atencion:0.2.0}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://atencion:${POSTGRES_PASSWORD:-atencion}@db:5432/atencion
+      INGEST_USER_AGENT: "Atencion/0.2 (personal feed reader)"
+      EDITION_SIZE: "10"
+      CANDIDATE_WINDOW_DAYS: "14"
+      REPEAT_COOLDOWN_DAYS: "7"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrador}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      YOUTUBE_REDIRECT_URI: ${YOUTUBE_REDIRECT_URI:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+# Ingesta y edición programadas (Fase 3): usa las tareas programadas del NAS o
+# un servicio cron propio ejecutando:
+#   docker compose -f docker-compose.prod.yml run --rm app npm run ingest
+#   docker compose -f docker-compose.prod.yml run --rm app npm run edition
+
+volumes:
+  pgdata:
