@@ -8,6 +8,10 @@ Diseño del MVP: [`docs/MVP.md`](docs/MVP.md). Plan por fases:
 [`docs/ROADMAP.md`](docs/ROADMAP.md). Estado actual y próximos pasos:
 [`docs/ESTADO.md`](docs/ESTADO.md).
 
+Si vas a modificar el proyecto (persona o agente), empieza por
+[`AGENTS.md`](AGENTS.md): reglas de arquitectura, comandos, secretos y
+definición de «hecho».
+
 ## Estado
 
 Este repositorio contiene el **MVP** en su versión multiusuario. Implementa el
