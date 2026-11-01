@@ -8,6 +8,7 @@ Documentos de contexto:
 
 - [`README.md`](README.md): puesta en marcha y uso.
 - [`docs/MVP.md`](docs/MVP.md): diseño del producto.
+- [`docs/DISENO.md`](docs/DISENO.md): filosofía, voz y reglas de interfaz.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): fases y decisiones cerradas.
 - [`docs/ESTADO.md`](docs/ESTADO.md): estado real, deuda técnica y prioridades.
 
@@ -288,6 +289,10 @@ Reglas al modificar el motor:
 ---
 
 ## 11. Convenciones de UI
+
+La referencia vinculante es [`docs/DISENO.md`](docs/DISENO.md): filosofía, voz,
+paleta, tipografía, anatomía de tarjetas, jerarquía de acciones y lista negra de
+antipatrones. Si una pantalla nueva no encaja, no se implementa.
 
 - Server Components por defecto; `"use client"` solo para interacción.
 - Textos en español, tono sobrio, sin emojis.

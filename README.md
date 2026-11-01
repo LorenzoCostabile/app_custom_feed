@@ -4,7 +4,8 @@ Sistema multiusuario para descubrir información, seleccionar lo que merece tu
 tiempo y consumirlo deliberadamente. El flujo termina cuando has decidido, no
 cuando has consumido todo el contenido.
 
-Diseño del MVP: [`docs/MVP.md`](docs/MVP.md). Plan por fases:
+Diseño del MVP: [`docs/MVP.md`](docs/MVP.md). Filosofía de diseño:
+[`docs/DISENO.md`](docs/DISENO.md). Plan por fases:
 [`docs/ROADMAP.md`](docs/ROADMAP.md). Estado actual y próximos pasos:
 [`docs/ESTADO.md`](docs/ESTADO.md).
 
