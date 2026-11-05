@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Asistente de cookie · Atención</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">Atención · herramienta local</p>
+        <h1>Traer tu feed de YouTube</h1>
+        <p class="lede">
+          Este asistente lee la cookie de tu navegador, comprueba que la sesión
+          sigue viva y la guarda en Atención. Todo ocurre en tu PC: la cookie no
+          se muestra ni se envía a ningún sitio que no sea tu propia app.
+        </p>
+      </header>
+
+      <section class="env" aria-label="Estado del entorno">
+        <div class="env-item">
+          <span class="env-label">Python</span>
+          <span id="env-python" class="env-value">Comprobando…</span>
+        </div>
+        <div class="env-item">
+          <span class="env-label">yt-dlp</span>
+          <span id="env-ytdlp" class="env-value">Comprobando…</span>
+        </div>
+        <div class="env-item">
+          <span class="env-label">Cookie</span>
+          <span id="env-cookie" class="env-value">Comprobando…</span>
+        </div>
+      </section>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-head">
+            <span class="step-num" aria-hidden="true">1</span>
+            <div>
+              <h2>Prepara la herramienta</h2>
+              <p class="step-lede">
+                Se instala <code>yt-dlp</code> dentro de esta carpeta
+                (<code>.venv</code>). No toca el Python del sistema ni instala
+                nada global.
+              </p>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="install" type="button" class="btn btn-secondary">
+              Preparar yt-dlp
+            </button>
+            <span id="install-status" class="pill" hidden></span>
+          </div>
+          <pre id="install-log" class="log" aria-live="polite" hidden></pre>
+        </li>
+
+        <li class="step">
+          <div class="step-head">
+            <span class="step-num" aria-hidden="true">2</span>
+            <div>
+              <h2>Elige el navegador y exporta</h2>
+              <p class="step-lede">
+                Usaremos la sesión que ya tienes abierta en YouTube. Nada de
+                contraseñas de Google: solo se leen las cookies del navegador.
+              </p>
+            </div>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend class="legend">Navegador con la sesión de YouTube</legend>
+            <div id="browsers" class="browsers" role="radiogroup">
+              <p class="muted">Detectando navegadores…</p>
+            </div>
+          </fieldset>
+
+          <div id="browser-help" class="help" aria-live="polite"></div>
+
+          <details class="profiles">
+            <summary>¿Tienes varios perfiles en ese navegador?</summary>
+            <label class="field">
+              <span>Nombre o ruta del perfil (opcional)</span>
+              <input
+                id="profile"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Por ejemplo: default-release"
+              />
+            </label>
+            <p class="hint">
+              Si lo dejas vacío se usa el perfil predeterminado. Solo hace falta
+              si yt-dlp dice que no encuentra la sesión.
+            </p>
+          </details>
+
+          <div class="row">
+            <button id="export" type="button" class="btn btn-primary" disabled>
+              Exportar y comprobar
+            </button>
+            <button id="forget" type="button" class="btn btn-quiet" hidden>
+              Borrar cookie exportada
+            </button>
+          </div>
+
+          <div id="export-result" class="result" hidden aria-live="polite"></div>
+        </li>
+
+        <li class="step">
+          <div class="step-head">
+            <span class="step-num" aria-hidden="true">3</span>
+            <div>
+              <h2>Guárdala en Atención</h2>
+              <p class="step-lede">
+                Atención tiene que estar en marcha. Si la ejecutas con Docker en
+                este PC, la dirección es <code>http://localhost:3000</code>.
+              </p>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Dirección de Atención</span>
+            <input
+              id="app-url"
+              type="url"
+              autocomplete="off"
+              spellcheck="false"
+              value="http://localhost:3000"
+            />
+          </label>
+
+          <div class="row">
+            <button id="probe" type="button" class="btn btn-secondary">
+              Comprobar conexión
+            </button>
+            <span id="probe-status" class="pill" hidden></span>
+          </div>
+
+          <div class="creds">
+            <p class="creds-title">Si Atención te pide iniciar sesión</p>
+            <p class="hint">
+              Escribe el correo y la contraseña de tu cuenta de Atención. Solo se
+              usan para abrir una sesión contra tu propia instancia y no se
+              guardan en ningún sitio.
+            </p>
+            <div class="grid-2">
+              <label class="field">
+                <span>Correo</span>
+                <input
+                  id="email"
+                  type="email"
+                  autocomplete="username"
+                  spellcheck="false"
+                  placeholder="admin@atencion.local"
+                />
+              </label>
+              <label class="field">
+                <span>Contraseña</span>
+                <input
+                  id="password"
+                  type="password"
+                  autocomplete="current-password"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="push" type="button" class="btn btn-primary" disabled>
+              Guardar cookie en Atención
+            </button>
+          </div>
+
+          <div id="push-result" class="result" hidden aria-live="polite"></div>
+        </li>
+      </ol>
+
+      <footer class="footer">
+        <p class="hint">
+          Cuando termines, cierra esta ventana. La cookie queda cifrada dentro de
+          Atención; el archivo temporal de esta carpeta puedes borrarlo.
+        </p>
+        <button id="shutdown" type="button" class="btn btn-quiet">
+          Cerrar el asistente
+        </button>
+      </footer>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

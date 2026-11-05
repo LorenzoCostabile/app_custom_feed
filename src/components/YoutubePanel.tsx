@@ -26,6 +26,9 @@ export function YoutubePanel({
   const [errors, setErrors] = useState<string[]>([]);
   const [cookie, setCookie] = useState("");
   const [cookieState, setCookieState] = useState(hasCookie);
+  const [checking, setChecking] = useState(false);
+  const [cookieStatus, setCookieStatus] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string[]>([]);
 
   function connect() {
     window.location.href = "/api/youtube/connect";
@@ -74,6 +77,8 @@ export function YoutubePanel({
     setPending(true);
     setMessage(null);
     setErrors([]);
+    setCookieStatus(null);
+    setNotes([]);
     try {
       const response = await fetch("/api/youtube/cookie", {
         method: "POST",
@@ -84,12 +89,58 @@ export function YoutubePanel({
       if (!response.ok) throw new Error(data.error ?? "No se pudo guardar.");
       setCookie("");
       setCookieState(true);
+      setCookieStatus(
+        data.status === "valid"
+          ? `Cookie válida · ${data.videoCount} recomendaciones disponibles.`
+          : "Cookie guardada, pero el feed no devolvió recomendaciones.",
+      );
+      if (Array.isArray(data.warnings) && data.warnings.length > 0) {
+        setNotes(data.warnings);
+      }
       setMessage("Cookie guardada. Ya puedes actualizar las recomendaciones.");
       router.refresh();
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : "Error inesperado.");
     } finally {
       setPending(false);
+    }
+  }
+
+  async function checkCookie() {
+    setChecking(true);
+    setMessage(null);
+    setErrors([]);
+    setCookieStatus(null);
+    setNotes([]);
+    try {
+      const response = await fetch("/api/youtube/cookie/status");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "No se pudo comprobar.");
+      if (data.status === "valid") {
+        setCookieStatus(
+          `Cookie válida · ${data.videoCount} recomendaciones disponibles.`,
+        );
+      } else if (data.status === "no_feed") {
+        setCookieStatus(`Sesión válida, pero el feed no responde: ${data.message}`);
+      } else if (data.status === "invalid") {
+        setCookieStatus(`Cookie caducada: ${data.message}`);
+      } else {
+        setCookieStatus(data.message ?? "No hay ninguna cookie guardada.");
+      }
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "Error inesperado.");
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function loadCookieFile(file: File | undefined) {
+    if (!file) return;
+    try {
+      setCookie(await file.text());
+      setMessage(`Archivo ${file.name} cargado. Pulsa «Guardar cookie».`);
+    } catch {
+      setMessage("No se pudo leer el archivo.");
     }
   }
 
@@ -211,29 +262,58 @@ export function YoutubePanel({
         <div className="mt-1 flex flex-col gap-2 border-t border-line pt-3">
           <h3 className="text-sm font-semibold">Recomendaciones del feed</h3>
           <p className="text-xs text-muted">
-            Pega la cabecera «cookie» de youtube.com (con tu sesión iniciada)
-            para importar el feed real de recomendaciones. Se guarda cifrada.
+            Abre{" "}
+            <code className="rounded bg-paper px-1">
+              tools/youtube-cookie-wizard/Iniciar.bat
+            </code>{" "}
+            y sigue los pasos: exporta la cookie de tu navegador, comprueba la
+            sesión y la guarda aquí. También puedes pegar la cabecera «cookie» o
+            el contenido de un <code className="rounded bg-paper px-1">
+              cookies.txt
+            </code>{" "}
+            de Netscape. Se guarda cifrada.
           </p>
           <textarea
             value={cookie}
             onChange={(event) => setCookie(event.target.value)}
-            rows={3}
-            placeholder="SID=...; HSID=...; SSID=...; __Secure-1PSID=..."
-            className="w-full rounded border border-line bg-white px-2 py-1 text-xs"
+            rows={4}
+            placeholder={
+              "# Netscape HTTP Cookie File…\no SID=...; HSID=...; __Secure-1PSID=..."
+            }
+            className="w-full rounded border border-line bg-white px-2 py-1 font-mono text-xs"
           />
           <div className="flex flex-wrap items-center gap-2">
+            <label className="cursor-pointer rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-accent hover:text-accent">
+              Subir cookies.txt
+              <input
+                type="file"
+                accept=".txt,text/plain"
+                className="sr-only"
+                onChange={(event) =>
+                  loadCookieFile(event.target.files?.[0])
+                }
+              />
+            </label>
             <button
               type="button"
               onClick={saveCookie}
-              disabled={pending || cookie.trim().length < 20}
+              disabled={pending || checking || cookie.trim().length < 10}
               className="rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-accent hover:text-accent disabled:opacity-50"
             >
-              Guardar cookie
+              {pending ? "Guardando…" : "Guardar cookie"}
+            </button>
+            <button
+              type="button"
+              onClick={checkCookie}
+              disabled={pending || checking || !cookieState}
+              className="rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-accent hover:text-accent disabled:opacity-50"
+            >
+              {checking ? "Comprobando…" : "Comprobar cookie"}
             </button>
             <button
               type="button"
               onClick={refreshRecommendations}
-              disabled={pending || !cookieState}
+              disabled={pending || checking || !cookieState}
               className="rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-accent hover:text-accent disabled:opacity-50"
             >
               Actualizar recomendaciones
@@ -242,7 +322,7 @@ export function YoutubePanel({
               <button
                 type="button"
                 onClick={clearCookie}
-                disabled={pending}
+                disabled={pending || checking}
                 className="rounded border border-line px-3 py-1.5 text-xs text-muted hover:border-red-700 hover:text-red-700 disabled:opacity-50"
               >
                 Borrar cookie
@@ -250,7 +330,17 @@ export function YoutubePanel({
             ) : null}
           </div>
           {cookieState ? (
-            <p className="text-xs text-muted">Cookie guardada.</p>
+            <p className="text-xs text-muted">Hay una cookie guardada.</p>
+          ) : null}
+          {cookieStatus ? (
+            <p className="text-xs text-ink/80">{cookieStatus}</p>
+          ) : null}
+          {notes.length > 0 ? (
+            <ul className="flex flex-col gap-1 text-xs text-muted">
+              {notes.map((note, index) => (
+                <li key={index}>· {note}</li>
+              ))}
+            </ul>
           ) : null}
         </div>
       ) : null}

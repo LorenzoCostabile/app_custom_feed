@@ -5,12 +5,14 @@ import { z } from "zod";
 import { db } from "@/db";
 import { youtubeAccounts } from "@/db/schema";
 import { getApiUser, unauthorized } from "@/lib/auth/api";
+import { normalizeYoutubeCookie } from "@/lib/youtube/cookie";
 import { encryptSecret } from "@/lib/youtube/crypto";
+import { validateCookie } from "@/lib/youtube/innertube";
 
 export const dynamic = "force-dynamic";
 
 const postSchema = z.object({
-  cookie: z.string().min(20).max(8000),
+  cookie: z.string().min(10).max(1_000_000),
 });
 
 export async function POST(request: Request) {
@@ -21,7 +23,21 @@ export async function POST(request: Request) {
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "La cookie no parece válida." },
+      {
+        error:
+          "No se recibió ninguna cookie. Pega la cabecera «cookie» o sube el archivo cookies.txt.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const normalized = normalizeYoutubeCookie(parsed.data.cookie);
+  if (normalized.missing.length > 0 || !normalized.cookie) {
+    return NextResponse.json(
+      {
+        error: `La cookie no contiene la sesión de YouTube. Falta: ${normalized.missing.join(", ")}.`,
+        missing: normalized.missing,
+      },
       { status: 400 },
     );
   }
@@ -34,17 +50,48 @@ export async function POST(request: Request) {
 
   if (!account) {
     return NextResponse.json(
-      { error: "Conecta tu cuenta de YouTube primero." },
+      {
+        error:
+          "Conecta tu cuenta de YouTube primero. La cookie se guarda junto a esa cuenta.",
+      },
       { status: 400 },
+    );
+  }
+
+  const check = await validateCookie(normalized.cookie);
+
+  if (check.status === "invalid") {
+    return NextResponse.json(
+      { error: check.message ?? "La cookie ha caducado." },
+      { status: 400 },
+    );
+  }
+  if (check.status === "error") {
+    return NextResponse.json(
+      {
+        error:
+          check.message ??
+          "No se pudo comprobar la cookie con YouTube. Inténtalo de nuevo.",
+      },
+      { status: 502 },
     );
   }
 
   await db
     .update(youtubeAccounts)
-    .set({ cookieEncrypted: encryptSecret(parsed.data.cookie) })
+    .set({ cookieEncrypted: encryptSecret(normalized.cookie) })
     .where(eq(youtubeAccounts.id, account.id));
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    status: check.status,
+    videoCount: check.videoCount,
+    cookieCount: normalized.names.length,
+    warnings: [
+      ...normalized.warnings,
+      ...(check.status === "no_feed" && check.message ? [check.message] : []),
+    ],
+  });
 }
 
 export async function DELETE() {

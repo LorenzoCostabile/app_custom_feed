@@ -1,9 +1,9 @@
 # Reporte de estado — Atención
 
-**Fecha:** 22 de octubre de 2026
+**Fecha:** 2 de noviembre de 2026
 **Alcance:** código en `F:\ProyectoAppAtencion`, infraestructura Docker y datos
-verificados en la última ejecución. Durante la elaboración del informe Docker
-estaba detenido, por lo que las cifras de datos son la última medición conocida.
+verificados en la última ejecución. Docker estaba en marcha; las cifras de datos
+son de la última medición.
 
 ---
 
@@ -28,10 +28,10 @@ ahora mismo está bloqueada por una cookie caducada.
 | Datos | PostgreSQL **16** + Drizzle ORM **0.33** / drizzle-kit |
 | Validación | Zod **3.23** |
 | Ingesta | `rss-parser`, `fetch` nativo |
-| YouTube | Google OAuth + YouTube Data API v3 + `youtubei.js` **18.2** (scraping) |
+| YouTube | Google OAuth + YouTube Data API v3 + `youtubei.js` **18.3.0** (fijado, scraping) |
 | Utilidades | `date-fns`, `dotenv` |
 | Ejecución de scripts | `tsx` (workers, migraciones, seed) |
-| Tests | `node:test` vía `tsx` (6 pruebas unitarias) |
+| Tests | `node:test` vía `tsx` (14 pruebas unitarias) |
 | Calidad | ESLint (`next lint`) + `tsc --noEmit` |
 | Infra | Docker multi-stage (Node 20 Alpine) + Docker Compose |
 | Entorno local | Docker Desktop en Windows; **Node no instalado en el host** |
@@ -176,7 +176,8 @@ Deuda:
 - **Consumo:** `/api/saved`, `POST|PATCH /api/feedback`
 - **YouTube:** `GET /api/youtube/connect`, `GET /api/youtube/callback`,
   `POST /api/youtube/sync`, `POST /api/youtube/disconnect`,
-  `POST|DELETE /api/youtube/cookie`, `POST /api/youtube/recommendations`
+  `POST|DELETE /api/youtube/cookie`, `GET /api/youtube/cookie/status`,
+  `POST /api/youtube/recommendations`
 - **Salud:** `GET /health` (público)
 
 ---
@@ -244,11 +245,29 @@ Deuda:
    youtube.com.
    - Requiere cookie de sesión válida y consentimiento (la app añade
      `SOCS=CAI`).
-   - **Estado actual: bloqueada.** La cookie guardada ya no autentica (YouTube
-     responde «Sign in»), probablemente por rotar la sesión. Hace falta pegar una
-     cookie nueva.
-   - Ya muestra errores claros (cookie caducada / historial desactivado /
-     consentimiento).
+   - **Estado actual: validada con una cookie real.** Comprobación en vivo:
+     `status: valid`, 38–40 vídeos por lectura; importación real de 40 vídeos
+     (38 nuevos). La cookie anterior se invalidó y hubo que exportar otra.
+   - **Validación honesta:** la app no se fía de `session.logged_in` (una cookie
+     inventada también lo activa); exige que `account.getInfo(true)` devuelva al
+     menos una cuenta. Un fallo de red se clasifica como `error`, no como cookie
+     caducada.
+   - **Exportación asistida:** `tools/youtube-cookie-wizard/` (Windows) detecta
+     el navegador, instala `yt-dlp` en un `.venv` local, exporta con
+     `--cookies-from-browser`, comprueba el feed de suscripciones y envía la
+     cookie a la app. Acepta el archivo Netscape de `yt-dlp` y la cabecera
+     `cookie` copiada a mano; normaliza y descarta cookies ajenas a YouTube.
+   - **Guardado con validación previa:** `POST /api/youtube/cookie` valida contra
+     YouTube **antes** de cifrar y guardar; si la cookie es inválida devuelve
+     `400` y no sobrescribe la anterior. `GET /api/youtube/cookie/status`
+     informa del estado en vivo.
+   - **Regla:** si el feed no está accesible, esa fuente aporta cero ítems. No se
+     sustituye ni se rellena el hueco con otras fuentes.
+   - **Riesgo abierto:** YouTube rota `__Secure-1PSIDTS` al usar la sesión y
+     `youtubei.js` no persiste las `Set-Cookie`. En las pruebas la cookie
+     aguantó varias lecturas seguidas, pero puede caducar antes de lo deseable:
+     si el feed responde «Sign in», hay que exportar una nueva. Ver
+     [`YOUTUBE.md`](YOUTUBE.md) §7.
 
 ---
 
@@ -302,11 +321,15 @@ Riesgos:
 
 Verificado en la última sesión:
 
-- `typecheck` OK, `lint` OK, **6/6 tests**, `next build` OK.
+- `typecheck` OK, `lint` OK, **14/14 tests**, `next build` OK.
 - Imagen Docker reconstruida y contenedor arrancado.
 - Smoke tests: `/health` 200, login 200, `/fuentes` 200, portada 200.
 - Ocultar fuente reduce la edición (10 → 6); restaurarla la recupera.
-- Recomendaciones: importación de 40 vídeos y 2 incluidas en una edición real.
+- **Cookie de YouTube con sesión real:** `GET /api/youtube/cookie/status` →
+  `valid` (38–40 vídeos) en lecturas repetidas; `POST /api/youtube/recommendations`
+  importó 40 vídeos (38 nuevos) y la fuente quedó en `last_status = ok`.
+- La validación rechaza cookies inventadas (`session.logged_in` no basta) y
+  distingue fallo de red de cookie caducada.
 
 Carencias:
 
@@ -322,7 +345,7 @@ Carencias:
 | Fase | Estado |
 |---|---|
 | 0 · Multiusuario y despliegue | **Completa**: CI/CD e imagen en GHCR; falta ejecutar el despliegue en el NAS |
-| 1 · YouTube | **Implementada**; verificación con cookie real pendiente |
+| 1 · YouTube | **Verificada con cookie real**: feed e importación funcionando; pendiente persistir la rotación de cookie |
 | 2 · Algoritmo y experiencia | **Parcial**: temas ya ponderan, historial/ingesta/config hechos; faltan feedback UI y CRUD de fuentes |
 | 3 · Plataforma | **Pendiente**: PWA, bloqueo móvil, cron, FreeTube |
 | 4 · Descubrimiento | **Pendiente** |
@@ -333,8 +356,10 @@ Carencias:
 
 ### P0 — Cerrar la operación diaria (1–2 semanas)
 
-1. **Cookie nueva de YouTube** y verificación real del feed; añadir estado visible
-   («cookie válida / caducada») y un fallback claro si InnerTube falla.
+1. **Estabilizar la cookie de YouTube.** El feed ya está verificado con una
+   cookie real y el estado es visible en la app. Falta **persistir la rotación**
+   de `__Secure-1PSIDTS`: leer las `Set-Cookie` de la sesión de `youtubei.js` y
+   volver a cifrarlas tras cada uso, para no depender de reexportar a mano.
 2. **Cron real**: contenedor o tareas del NAS para ingesta horaria y edición a las
    07:00 **Europe/Madrid** (corregir el uso de UTC).
 3. **Desplegar en el NAS** con la imagen de GHCR y **programar backups** del

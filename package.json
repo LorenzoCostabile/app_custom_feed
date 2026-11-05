@@ -16,7 +16,7 @@
     "db:push": "drizzle-kit push",
     "ingest": "tsx src/worker/ingest.ts",
     "edition": "tsx src/worker/edition.ts",
-    "test": "tsx --test src/lib/recommendation/recommendation.test.ts"
+    "test": "tsx --test src/lib/recommendation/recommendation.test.ts src/lib/youtube/cookie.test.ts"
   },
   "dependencies": {
     "date-fns": "^3.6.0",
@@ -27,7 +27,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rss-parser": "^3.13.0",
-    "youtubei.js": "^18.2.0",
+    "youtubei.js": "18.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

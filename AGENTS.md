@@ -11,6 +11,8 @@ Documentos de contexto:
 - [`docs/DESIGN.md`](docs/DESIGN.md): filosofía, voz y reglas de interfaz.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): fases y decisiones cerradas.
 - [`docs/ESTADO.md`](docs/ESTADO.md): estado real, deuda técnica y prioridades.
+- [`docs/YOUTUBE.md`](docs/YOUTUBE.md): feed de recomendaciones, cookie y
+  diagnóstico.
 
 ---
 
@@ -272,6 +274,13 @@ Reglas al modificar el motor:
 - La cookie se guarda cifrada y **nunca** debe mostrarse.
 - Se añade `SOCS=CAI` si falta consentimiento.
 - Errores diferenciados: cookie caducada, historial desactivado, consentimiento.
+- La app acepta `cookies.txt` de Netscape o la cabecera `cookie`; normaliza en
+  `lib/youtube/cookie.ts` y **valida contra YouTube antes de guardar**
+  (`POST /api/youtube/cookie`). `GET /api/youtube/cookie/status` repite esa
+  comprobación en vivo cuando el usuario la pide.
+- Para el usuario, `tools/youtube-cookie-wizard/Iniciar.bat` exporta la cookie
+  desde el navegador y la entrega a la app. Es una herramienta de escritorio,
+  no forma parte de la imagen Docker.
 - Es frágil y **va contra los Términos de YouTube**; no amplíes el scraping sin
   decisión explícita del usuario.
 - El paquete `youtubei.js` debe seguir como *external package* en
@@ -348,9 +357,10 @@ Y comprueba al menos:
 - Página o API afectada.
 - Si toca el motor: genera una edición y revisa tamaño, motivos y topes.
 
-Estado actual de tests: **6 unitarios** del motor. No hay tests de integración,
-E2E ni de aislamiento multiusuario. La CI ejecuta en cada push y PR:
-`typecheck`, `lint`, tests, migraciones contra un PostgreSQL real y `next build`.
+Estado actual de tests: **14 unitarios** (6 del motor y 8 de normalización de
+cookies). No hay tests de integración, E2E ni de aislamiento multiusuario. La CI
+ejecuta en cada push y PR: `typecheck`, `lint`, tests, migraciones contra un
+PostgreSQL real y `next build`.
 Si añades lógica crítica, añade pruebas.
 
 ---

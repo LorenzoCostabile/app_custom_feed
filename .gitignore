@@ -10,3 +10,9 @@ backups/
 *.log
 .DS_Store
 *.tsbuildinfo
+
+# Asistente local de cookie (no forma parte de la imagen)
+tools/youtube-cookie-wizard/.venv/
+tools/youtube-cookie-wizard/yt-cookies.txt
+tools/youtube-cookie-wizard/__pycache__/
+*.pyc

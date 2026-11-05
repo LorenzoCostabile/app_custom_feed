@@ -109,6 +109,31 @@ function withConsent(cookie: string): string {
   return `${cookie}; SOCS=CAI`;
 }
 
+async function createClient(cookie: string): Promise<InnertubeClient> {
+  return Innertube.create({
+    cookie: withConsent(cookie),
+    retrieve_player: false,
+  });
+}
+
+function collectVideos(
+  nodes: readonly unknown[] | undefined,
+  limit: number,
+): RecommendedVideo[] {
+  const videos: RecommendedVideo[] = [];
+  const seen = new Set<string>();
+
+  for (const node of nodes ?? []) {
+    const video = extractVideo(node);
+    if (!video || seen.has(video.videoId)) continue;
+    seen.add(video.videoId);
+    videos.push(video);
+    if (videos.length >= limit) break;
+  }
+
+  return videos;
+}
+
 async function explainEmptyFeed(innertube: InnertubeClient): Promise<string> {
   try {
     const response = await innertube.actions.execute("/browse", {
@@ -137,33 +162,133 @@ async function explainEmptyFeed(innertube: InnertubeClient): Promise<string> {
   return EMPTY_FEED_MESSAGE;
 }
 
+export type CookieCheck = {
+  status: "valid" | "invalid" | "no_feed" | "error";
+  message: string | null;
+  videoCount: number;
+};
+
+type AccountCheck =
+  | { kind: "ok" }
+  | { kind: "signed-out" }
+  | { kind: "error"; message: string };
+
+/**
+ * `session.logged_in` solo mira si hay cookies de sesión, no si son válidas:
+ * una cookie inventada también lo activa. La lista de cuentas del usuario sí
+ * exige una sesión real, así que es la puerta que usamos.
+ *
+ * Un fallo de red no es una cookie caducada: se devuelve `error` para no
+ * pedir al usuario que exporte una cookie que probablemente sigue valiendo.
+ */
+async function checkAccounts(innertube: InnertubeClient): Promise<AccountCheck> {
+  if (!innertube.session.logged_in) return { kind: "signed-out" };
+
+  try {
+    const accounts = await innertube.account.getInfo(true);
+    return accounts.length > 0 ? { kind: "ok" } : { kind: "signed-out" };
+  } catch (cause) {
+    const message =
+      cause instanceof Error ? cause.message : "Error desconocido de YouTube.";
+    if (/signed in/i.test(message)) return { kind: "signed-out" };
+    return { kind: "error", message };
+  }
+}
+
+function isSignedOutError(cause: unknown): boolean {
+  return cause instanceof Error && /signed in/i.test(cause.message);
+}
+
+/**
+ * Comprueba que la cookie abre una sesión real y que el feed responde.
+ *
+ * `no_feed` significa que la sesión es válida pero YouTube no ofrece
+ * recomendaciones (historial desactivado, consentimiento pendiente…). La
+ * cookie se puede guardar; el feed simplemente no aportará ítems.
+ */
+export async function validateCookie(cookie: string): Promise<CookieCheck> {
+  let innertube: InnertubeClient;
+  try {
+    innertube = await createClient(cookie);
+  } catch (cause) {
+    return {
+      status: "error",
+      message:
+        cause instanceof Error
+          ? `No se pudo crear el cliente de YouTube: ${cause.message}`
+          : "No se pudo crear el cliente de YouTube.",
+      videoCount: 0,
+    };
+  }
+
+  const account = await checkAccounts(innertube);
+  if (account.kind === "error") {
+    return {
+      status: "error",
+      message: `No se pudo comprobar la sesión con YouTube: ${account.message}`,
+      videoCount: 0,
+    };
+  }
+  if (account.kind === "signed-out") {
+    return {
+      status: "invalid",
+      message:
+        "La cookie de YouTube no abre ninguna cuenta: ha caducado o no es válida. Vuelve a exportarla desde el navegador.",
+      videoCount: 0,
+    };
+  }
+
+  try {
+    const feed = await innertube.getHomeFeed();
+    const videos = collectVideos(feed.videos, 40);
+    if (videos.length === 0) {
+      return {
+        status: "no_feed",
+        message: await explainEmptyFeed(innertube),
+        videoCount: 0,
+      };
+    }
+    return { status: "valid", message: null, videoCount: videos.length };
+  } catch (cause) {
+    if (isSignedOutError(cause)) {
+      return {
+        status: "invalid",
+        message:
+          "La cookie de YouTube ya no abre la sesión. Vuelve a exportarla desde el navegador.",
+        videoCount: 0,
+      };
+    }
+    return {
+      status: "error",
+      message:
+        cause instanceof Error
+          ? `No se pudo leer el feed de YouTube: ${cause.message}`
+          : "No se pudo leer el feed de YouTube.",
+      videoCount: 0,
+    };
+  }
+}
+
 export async function fetchRecommendations(
   cookie: string,
   limit = 40,
 ): Promise<RecommendedVideo[]> {
-  const innertube = await Innertube.create({
-    cookie: withConsent(cookie),
-    retrieve_player: false,
-  });
+  const innertube = await createClient(cookie);
 
-  if (!innertube.session.logged_in) {
+  const account = await checkAccounts(innertube);
+  if (account.kind === "error") {
     throw new Error(
-      "La cookie de YouTube no es válida o la sesión ha caducado. Vuelve a copiarla desde el navegador.",
+      `No se pudo comprobar la sesión con YouTube: ${account.message}`,
+    );
+  }
+  if (account.kind === "signed-out") {
+    throw new Error(
+      "La cookie de YouTube no abre ninguna cuenta: ha caducado o no es válida. Vuelve a exportarla desde el navegador.",
     );
   }
 
   const feed = await innertube.getHomeFeed();
-
-  const videos: RecommendedVideo[] = [];
-  const seen = new Set<string>();
-
-  for (const node of feed.videos ?? []) {
-    const video = extractVideo(node);
-    if (!video || seen.has(video.videoId)) continue;
-    seen.add(video.videoId);
-    videos.push(video);
-    if (videos.length >= limit) break;
-  }
+  const videos = collectVideos(feed.videos, limit);
 
   if (videos.length === 0) {
     throw new Error(await explainEmptyFeed(innertube));

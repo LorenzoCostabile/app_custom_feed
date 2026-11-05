@@ -158,27 +158,38 @@ refresh token caduca a los 7 días: revisa **Sincronizar ahora** o publica la ap
 
 Además de la API oficial, puedes importar tu **feed real de recomendaciones** de
 YouTube (la portada de youtube.com). Se obtiene con la librería `youtubei.js`
-(InnerTube), que **requiere tu cookie de sesión**:
+(InnerTube), que **requiere tu cookie de sesión**.
 
-1. En **Fuentes → Cuenta de YouTube**, pega el valor de la cabecera `cookie`
-   de una petición a `youtube.com` estando con la sesión iniciada (incluye
-   `SID`, `HSID`, `SSID`, `__Secure-1PSID`, etc.).
-2. Pulsa **Guardar cookie**. Se almacena cifrada con `TOKEN_ENCRYPTION_KEY`.
-3. Pulsa **Actualizar recomendaciones** (o **Sincronizar ahora**). Los vídeos
-   entran en una fuente dedicada «Recomendaciones de YouTube».
+**La forma recomendada en Windows** es el asistente local
+[`tools/youtube-cookie-wizard/`](tools/youtube-cookie-wizard/LEEME.md):
+
+1. Con la sesión de YouTube iniciada en el navegador, ejecuta
+   `tools/youtube-cookie-wizard/Iniciar.bat`.
+2. El asistente instala `yt-dlp` en una carpeta aislada, exporta la cookie,
+   **comprueba la sesión contra YouTube** y la envía a la app.
+3. Si prefieres hacerlo a mano, en **Fuentes → Cuenta de YouTube** puedes pegar
+   la cabecera `cookie` o subir un archivo `cookies.txt` de Netscape.
+
+La app valida la cookie antes de guardarla y la almacena cifrada con
+`TOKEN_ENCRYPTION_KEY`. El botón **Comprobar cookie** vuelve a validarla y
+distingue entre sesión caducada, feed vacío e historial desactivado.
 
 Requisitos de la cuenta de YouTube: el **historial de reproducción debe estar
 activado** (<https://www.youtube.com/feed/history>); si está desactivado, YouTube
 devuelve la portada vacía y la app mostrará un aviso. La app añade el
 consentimiento de cookies (`SOCS=CAI`) si tu cookie no lo incluye. La cookie deja
 de valer si cierras esa sesión, cambias la contraseña o revocas los dispositivos:
-en ese caso vuelve a iniciar sesión en el navegador y pega una cookie nueva. Las
-recomendaciones importadas no necesitan clasificación por temas: los temas solo
-ponderan, no filtran.
+en ese caso vuelve a exportarla desde el navegador. Las recomendaciones
+importadas no necesitan clasificación por temas: los temas solo ponderan, no
+filtran.
+
+Si el feed no está accesible, esa fuente aporta **cero ítems**: la edición sale
+más corta y se declara el motivo. No se sustituye por otras fuentes ni se
+inventan recomendaciones.
 
 Aviso: este método no usa la API oficial; es frágil (puede dejar de funcionar si
 YouTube cambia) y **va contra los Términos de YouTube**. Úsalo bajo tu
-responsabilidad. Si caduca la sesión, vuelve a pegar la cookie.
+responsabilidad. Detalles técnicos en [`docs/YOUTUBE.md`](docs/YOUTUBE.md).
 
 ### Despliegue en TrueNAS Scale
 
@@ -354,6 +365,7 @@ src/
 scripts/migrate.ts            Aplicación de migraciones
 scripts/bootstrap-admin.ts    Creación del administrador inicial
 scripts/seed-sources.ts       Fuentes de prensa españolas (idempotente)
+tools/youtube-cookie-wizard/  Asistente local de cookie para Windows
 ```
 
 ## Regenerar migraciones
