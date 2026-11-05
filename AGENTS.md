@@ -112,6 +112,7 @@ npm run db:generate          # nueva migración desde src/db/schema.ts
 npm run db:migrate           # aplicar migraciones pendientes
 npm run db:bootstrap         # asegurar admin inicial (variables ADMIN_*)
 npm run db:seed -- correo@ejemplo.com
+npm run db:set-password     # cambia la contraseña y cierra sesiones (ADMIN_*)
 ```
 
 - **Nunca** edites una migración ya aplicada.
@@ -122,10 +123,14 @@ npm run db:seed -- correo@ejemplo.com
 
 ```powershell
 docker compose run --rm app npm run ingest
+docker compose run --rm app npm run recommendations
 docker compose run --rm app npm run edition
 ```
 
-En desarrollo, ejecutar dentro del contenedor `dev`.
+En producción los ejecuta el servicio `scheduler` del
+`docker-compose.prod.yml` (`crond` de Alpine, `TZ=Europe/Madrid`): ingesta a
+los `:15` de cada hora, recomendaciones a las 06:45 y edición a las 07:00. En
+desarrollo, ejecutar dentro del contenedor `dev`.
 
 ---
 
@@ -394,28 +399,27 @@ CI/CD (GitHub Actions):
 
 ## 15. Limitaciones y bloqueos conocidos
 
-- **Cookie de YouTube caducada**: el feed de recomendaciones requiere una cookie
-  nueva. Ver `docs/ESTADO.md`.
+- **Cookie de YouTube**: ya validada con una sesión real. YouTube puede invalidarla
+  al rotar `__Secure-1PSIDTS`; hay que reexportarla con el asistente.
 - **OAuth en modo Prueba**: refresh token a 7 días.
 - **«Ver más tarde»**: inaccesible vía API oficial.
 - **Clasificación de temas escasa**: solo una pequeña parte de las publicaciones
   tiene tema; los temas ya no filtran, pero afectan a la relevancia.
-- **Zona horaria**: la edición usa UTC; el cron previsto es `Europe/Madrid`.
-  Corregir antes de automatizar.
+- **Zona horaria**: la edición fecha en UTC. El planificador corre a las 07:00
+  `Europe/Madrid`, así que el día coincide; generar entre las 00:00 y las 02:00
+  locales aún daría la fecha anterior.
 - **Disco C: casi lleno** en el entorno Windows; cuidado con builds y volúmenes.
-- **Sin cron real ni backups automáticos**: la imagen ya se publica y hay
-  scripts manuales de copia (`scripts/db-backup.sh`).
+- **Copias manuales**: `scripts/db-backup.sh`; no hay copia programada.
 - **Sin RLS**: el aislamiento depende de filtrar por `user_id` en cada consulta.
 
 ---
 
 ## 16. Prioridades actuales
 
-1. Desbloquear y estabilizar YouTube (cookie válida, estado visible, fallback).
-2. Cron real: ingesta horaria y edición a las 07:00 `Europe/Madrid`.
-3. Desplegar en TrueNAS y automatizar backups del volumen `pgdata`.
+1. Cerrar el despliegue en TrueNAS y programar backups del volumen `pgdata`.
+2. Persistir la rotación de la cookie de YouTube (`Set-Cookie`).
+3. Tests de aislamiento e integración dentro de la CI existente.
 4. UI de feedback y CRUD de fuentes.
-5. Tests de aislamiento e integración dentro de la CI existente.
-6. PWA, bloqueo de vídeo en móvil y descubrimiento de fuentes.
+5. PWA, bloqueo de vídeo en móvil y descubrimiento de fuentes.
 
-No añadas funciones nuevas antes de cerrar los puntos 1–3 salvo petición expresa.
+No añadas funciones nuevas antes de cerrar los puntos 1–2 salvo petición expresa.

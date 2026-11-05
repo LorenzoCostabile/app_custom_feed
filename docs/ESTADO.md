@@ -63,8 +63,9 @@ Navegador
               PostgreSQL 16
 
 Workers tsx (src/worker/*) ── misma capa de dominio
-   ingest.ts  → ingesta de todas las fuentes
-   edition.ts → genera la edición de cada usuario
+   ingest.ts           → ingesta de todas las fuentes RSS/API
+   recommendations.ts  → feed de YouTube con la cookie
+   edition.ts          → genera la edición de cada usuario
 
 Servicios externos:
    RSS/Atom · Google OAuth/API · InnerTube (youtubei.js)
@@ -302,16 +303,18 @@ Riesgos:
 - `Dockerfile` multi-stage (`deps → builder → runner`), usuario `nextjs` no root.
 - `docker/entrypoint.sh`: espera PostgreSQL, aplica migraciones y crea admin si
   hay variables.
-- `docker-compose.yml`: `db` + `app` + perfil `dev` con hot reload.
-- `docker-compose.prod.yml`: despliegue en el NAS; imagen de GHCR, healthcheck,
-  `pull_policy: always` y límites de log.
+- `docker-compose.prod.yml`: despliegue en el NAS; `db` + `app` + `scheduler`
+  (`crond` de Alpine con ingesta horaria, recomendaciones a las 06:45 y edición a
+  las 07:00 `Europe/Madrid`), imagen de GHCR, healthcheck, `pull_policy: always` y
+  límites de log.
+- `docker-compose.yml`: desarrollo con perfil `dev` y hot reload.
 - **CI/CD** en GitHub Actions: `ci.yml` (tipos, lint, tests, migraciones, build y
   construcción de la imagen) y `release.yml` (publica
   `ghcr.io/lorenzocostabile/app_custom_feed` con `latest`, `sha-*` y semver al
-  etiquetar).
-- **Copias**: `scripts/db-backup.sh` y `scripts/db-restore.sh` (manuales).
-- **No hay**: contenedor cron, copias de seguridad programadas, HTTPS (se delega
-  en el proxy del NAS).
+  etiquetar). El paquete es público: el NAS puede hacer `pull` sin autenticarse.
+- **Copias**: `scripts/db-backup.sh` y `scripts/db-restore.sh` (manuales; el
+  segundo reconstruye el esquema sobre una base sin usuarios).
+- **No hay**: copias programadas, HTTPS propio (se delega en el proxy del NAS).
 - **Disco C: casi lleno** (~0,66 GB libres; `docker_data.vhdx` ~75 GB). Riesgo
   operativo real.
 
@@ -330,6 +333,13 @@ Verificado en la última sesión:
   importó 40 vídeos (38 nuevos) y la fuente quedó en `last_status = ok`.
 - La validación rechaza cookies inventadas (`session.logged_in` no basta) y
   distingue fallo de red de cookie caducada.
+- **Planificador:** `crond` del servicio `scheduler` ejecutó un trabajo de prueba
+  cada minuto y escribió en el log del contenedor; `docker compose config`
+  valida el YAML.
+- **Restauración:** volcado real de la base (3 usuarios, 4.146 ítems) restaurado
+  en una base de prueba tras reconstruir el esquema, con las mismas cifras.
+- **Cambio de contraseña:** `npm run db:set-password` actualiza el hash y cierra
+  las sesiones del usuario.
 
 Carencias:
 
@@ -347,7 +357,7 @@ Carencias:
 | 0 · Multiusuario y despliegue | **Completa**: CI/CD e imagen en GHCR; falta ejecutar el despliegue en el NAS |
 | 1 · YouTube | **Verificada con cookie real**: feed e importación funcionando; pendiente persistir la rotación de cookie |
 | 2 · Algoritmo y experiencia | **Parcial**: temas ya ponderan, historial/ingesta/config hechos; faltan feedback UI y CRUD de fuentes |
-| 3 · Plataforma | **Pendiente**: PWA, bloqueo móvil, cron, FreeTube |
+| 3 · Plataforma | **Parcial**: cron resuelto con el servicio `scheduler`; faltan PWA, bloqueo móvil y FreeTube |
 | 4 · Descubrimiento | **Pendiente** |
 
 ---
@@ -356,32 +366,31 @@ Carencias:
 
 ### P0 — Cerrar la operación diaria (1–2 semanas)
 
-1. **Estabilizar la cookie de YouTube.** El feed ya está verificado con una
+1. **Desplegar en el NAS** con la imagen de GHCR y **programar backups** del
+   volumen `pgdata` (hoy los scripts son manuales; el cron de la app ya está en
+   el compose).
+2. **Estabilizar la cookie de YouTube.** El feed ya está verificado con una
    cookie real y el estado es visible en la app. Falta **persistir la rotación**
    de `__Secure-1PSIDTS`: leer las `Set-Cookie` de la sesión de `youtubei.js` y
    volver a cifrarlas tras cada uso, para no depender de reexportar a mano.
-2. **Cron real**: contenedor o tareas del NAS para ingesta horaria y edición a las
-   07:00 **Europe/Madrid** (corregir el uso de UTC).
-3. **Desplegar en el NAS** con la imagen de GHCR y **programar backups** del
-   volumen `pgdata` (estado actual: scripts manuales).
-4. Resolver el **disco C:** (compactar `vhdx` o mover Docker a D:/F:).
+3. Resolver el **disco C:** (compactar `vhdx` o mover Docker a D:/F:).
 
 ### P1 — Completar el producto (2–4 semanas)
 
-5. **UI de feedback** («más de esto», «menos de esta fuente», «no me sirvió») con
+4. **UI de feedback** («más de esto», «menos de esta fuente», «no me sirvió») con
    confirmación; el motor ya la usa.
-6. **CRUD de fuentes** (editar/eliminar) e **import/export OPML**.
-7. **Gestión de temas**: editar keywords para subir la clasificación del 1 %
+5. **CRUD de fuentes** (editar/eliminar) e **import/export OPML**.
+6. **Gestión de temas**: editar keywords para subir la clasificación del 1 %
    actual.
-8. **Tests de aislamiento y de integración** + CI (GitHub Actions: typecheck,
+7. **Tests de aislamiento y de integración** + CI (GitHub Actions: typecheck,
    lint, test, build).
 
 ### P2 — Plataforma y alcance
 
-9. **PWA** + bloqueo de vídeo en móvil + enlace FreeTube en escritorio.
-10. **Descubrimiento de fuentes** (fase 4), la parte más costosa y la que más
-    valor diferencial añade a largo plazo.
+8. **PWA** + bloqueo de vídeo en móvil + enlace FreeTube en escritorio.
+9. **Descubrimiento de fuentes** (fase 4), la parte más costosa y la que más
+   valor diferencial añade a largo plazo.
 
 **Recomendación estratégica:** no añadir funciones nuevas hasta cerrar P0. La app
-ya hace lo importante; lo que falta para que sea «de uso diario» es que se ejecute
-sola, sea segura en el NAS y tenga copias de seguridad.
+ya hace lo importante; lo que falta para que sea «de uso diario» es desplegarla
+en el NAS y tener copias de seguridad automáticas.

@@ -63,6 +63,10 @@ navegador → yt-dlp → cookies.txt → asistente → POST /api/youtube/cookie
 5. **Comprobar.** `GET /api/youtube/cookie/status` hace la misma validación en
    vivo y devuelve estado + `videoCount`. Se llama desde el botón «Comprobar
    cookie» y desde el asistente, no en cada carga de página.
+6. **Refrescar.** En producción, el servicio `scheduler` ejecuta
+   `npm run recommendations` a las 06:45 (`Europe/Madrid`). Si falla, escribe
+   `last_status = error` y el motivo en `sources.last_error`, y la edición de las
+   07:00 sale sin esos ítems.
 
 ### Cookies imprescindibles
 

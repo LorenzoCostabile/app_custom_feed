@@ -42,6 +42,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://atencion:${POSTGRES_PASSWORD}@db:5432/atencion
+      TZ: ${TZ:-Europe/Madrid}
       INGEST_USER_AGENT: ${INGEST_USER_AGENT:-Atencion/0.2 (personal feed reader)}
       EDITION_SIZE: ${EDITION_SIZE:-10}
       CANDIDATE_WINDOW_DAYS: ${CANDIDATE_WINDOW_DAYS:-14}
@@ -78,11 +79,49 @@ services:
         max-size: "10m"
         max-file: "3"
 
-# Ingesta y edición programadas: aún no hay contenedor de cron. Mientras tanto,
-# desde la carpeta del compose:
-#   docker compose -f docker-compose.prod.yml run --rm app npm run ingest
-#   docker compose -f docker-compose.prod.yml run --rm app npm run edition
-# o usa el Programador de tareas del NAS.
+# Ingesta, recomendaciones y edición programadas.
+#
+# Usa el `crond` de Alpine dentro de la misma imagen, así que el despliegue no
+# depende del programador del NAS ni del nombre del contenedor. Horario en
+# Europe/Madrid (variable TZ). No ejecuta migraciones: ya lo hace `app`.
+#
+#   :15 cada hora  ingesta RSS
+#   06:45          recomendaciones de YouTube (cookie)
+#   07:00          edición diaria de cada usuario activo
+  scheduler:
+    image: ${ATENCION_IMAGE:-ghcr.io/lorenzocostabile/app_custom_feed:latest}
+    restart: unless-stopped
+    pull_policy: always
+    depends_on:
+      db:
+        condition: service_healthy
+    user: root
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        mkdir -p /etc/crontabs
+        printf '%s\n' \
+          "15 * * * * cd /app && npm run ingest >> /proc/1/fd/1 2>&1" \
+          "45 6 * * * cd /app && npm run recommendations >> /proc/1/fd/1 2>&1" \
+          "0 7 * * * cd /app && npm run edition >> /proc/1/fd/1 2>&1" \
+          > /etc/crontabs/root
+        exec crond -f -l 8 -c /etc/crontabs
+    environment:
+      DATABASE_URL: postgres://atencion:${POSTGRES_PASSWORD}@db:5432/atencion
+      TZ: ${TZ:-Europe/Madrid}
+      INGEST_USER_AGENT: ${INGEST_USER_AGENT:-Atencion/0.2 (personal feed reader)}
+      EDITION_SIZE: ${EDITION_SIZE:-10}
+      CANDIDATE_WINDOW_DAYS: ${CANDIDATE_WINDOW_DAYS:-14}
+      REPEAT_COOLDOWN_DAYS: ${REPEAT_COOLDOWN_DAYS:-7}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   pgdata:

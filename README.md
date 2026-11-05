@@ -235,13 +235,41 @@ curl -fsS http://127.0.0.1:3000/health
 HTTPS, deja `SESSION_COOKIE_SECURE=true`; si entras por HTTP, ponlo en `false` o
 el login no funcionará.
 
+**5. Comprueba el planificador.** El servicio `scheduler` ejecuta, en
+`Europe/Madrid`:
+
+| Hora | Tarea |
+|---|---|
+| `:15` de cada hora | `npm run ingest` (RSS y API de YouTube) |
+| 06:45 | `npm run recommendations` (feed de YouTube con la cookie) |
+| 07:00 | `npm run edition` (edición de cada usuario activo) |
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f scheduler
+```
+
+Si el feed de YouTube falla, la edición sale más corta y el motivo queda en
+`/fuentes`; no se rellena con otras fuentes.
+
+**6. Cambia la contraseña del administrador** (útil si has restaurado una copia
+con la contraseña de desarrollo):
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T app \
+  env ADMIN_EMAIL=tu@correo.com ADMIN_PASSWORD='nueva-contraseña' \
+  npm run db:set-password
+```
+
+Cierra las sesiones abiertas de ese usuario.
+
 - **Actualizar:** `pull` y `up -d`. La imagen nueva se aplica sola al recrear el
   contenedor.
 - **Volver atrás:** fija `ATENCION_IMAGE` a una etiqueta `sha-…` o a una versión y
   repite los dos comandos.
 - **Apps → Custom App (YAML):** si prefieres pegar el compose en la interfaz,
-  sustituye las variables `${…}` por sus valores literales; la app de TrueNAS no
-  lee el archivo `.env`.
+  sustituye las variables `${…}` por sus valores literales (la app de TrueNAS no
+  lee el archivo `.env`) y mantén el mismo `TOKEN_ENCRYPTION_KEY` si migras
+  datos. El compose no necesita ninguna carpeta del repositorio.
 
 Detén los servicios con:
 
@@ -260,14 +288,24 @@ COMPOSE_FILE=docker-compose.yml scripts/db-backup.sh
 ```
 
 Copia `backups/atencion-*.sql.gz` al NAS y, con el compose de producción
-arrancado y la base todavía vacía:
+arrancado y la base todavía vacía (sin usuarios), restaura desde la carpeta del
+compose:
 
 ```bash
-scripts/db-restore.sh backups/atencion-20260101-070000.sql.gz
+COMPOSE_FILE=docker-compose.prod.yml scripts/db-restore.sh backups/atencion-20260101-070000.sql.gz
 ```
 
-Conserva el mismo `TOKEN_ENCRYPTION_KEY`: si cambia, los tokens de Google y la
-cookie de YouTube guardados dejan de descifrarse.
+El script reconstruye el esquema `public` y carga el volcado (que incluye su
+propia tabla de migraciones). Si la base ya tiene usuarios, aborta para no
+mezclar datos. Conserva el mismo `TOKEN_ENCRYPTION_KEY`: si cambia, los tokens
+de Google y la cookie de YouTube guardados dejan de descifrarse. Después,
+cambia la contraseña del administrador heredada:
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T app \
+  env ADMIN_EMAIL=tu@correo.com ADMIN_PASSWORD='nueva-contraseña' \
+  npm run db:set-password
+```
 
 ### Modo desarrollo (recarga en caliente)
 
@@ -286,7 +324,8 @@ docker-compose.yml            Servicios db, app y dev (perfil "dev")
 docker-compose.prod.yml       Despliegue en el NAS (imagen de GHCR)
 .env.prod.example             Variables del despliegue (copiar como .env)
 scripts/db-backup.sh          Copia de la base de datos
-scripts/db-restore.sh         Restauración en una base vacía
+scripts/db-restore.sh         Restauración sobre una base sin usuarios
+scripts/set-password.ts       Cambia la contraseña de un usuario
 .dockerignore
 ```
 

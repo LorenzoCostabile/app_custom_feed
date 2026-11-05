@@ -13,8 +13,10 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:bootstrap": "tsx scripts/bootstrap-admin.ts",
     "db:seed": "tsx scripts/seed-sources.ts",
+    "db:set-password": "tsx scripts/set-password.ts",
     "db:push": "drizzle-kit push",
     "ingest": "tsx src/worker/ingest.ts",
+    "recommendations": "tsx src/worker/recommendations.ts",
     "edition": "tsx src/worker/edition.ts",
     "test": "tsx --test src/lib/recommendation/recommendation.test.ts src/lib/youtube/cookie.test.ts"
   },
