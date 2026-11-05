@@ -75,7 +75,8 @@ export const youtubeAccounts = pgTable(
     channelId: text("channel_id"),
     channelTitle: text("channel_title"),
     email: text("email"),
-    refreshTokenEncrypted: text("refresh_token_encrypted").notNull(),
+    // Nulo cuando la cuenta solo tiene cookie del feed (sin OAuth de Google).
+    refreshTokenEncrypted: text("refresh_token_encrypted"),
     accessTokenEncrypted: text("access_token_encrypted"),
     accessTokenExpiresAt: timestamp("access_token_expires_at", {
       withTimezone: true,

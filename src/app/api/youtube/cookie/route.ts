@@ -42,22 +42,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const [account] = await db
-    .select({ id: youtubeAccounts.id })
-    .from(youtubeAccounts)
-    .where(eq(youtubeAccounts.userId, user.id))
-    .limit(1);
-
-  if (!account) {
-    return NextResponse.json(
-      {
-        error:
-          "Conecta tu cuenta de YouTube primero. La cookie se guarda junto a esa cuenta.",
-      },
-      { status: 400 },
-    );
-  }
-
   const check = await validateCookie(normalized.cookie);
 
   if (check.status === "invalid") {
@@ -77,10 +61,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const cookieEncrypted = encryptSecret(normalized.cookie);
+
+  // La cuenta puede existir solo por la cookie: OAuth es opcional.
   await db
-    .update(youtubeAccounts)
-    .set({ cookieEncrypted: encryptSecret(normalized.cookie) })
-    .where(eq(youtubeAccounts.id, account.id));
+    .insert(youtubeAccounts)
+    .values({ userId: user.id, cookieEncrypted })
+    .onConflictDoUpdate({
+      target: youtubeAccounts.userId,
+      set: { cookieEncrypted },
+    });
 
   return NextResponse.json({
     ok: true,
@@ -98,10 +88,30 @@ export async function DELETE() {
   const user = await getApiUser();
   if (!user) return unauthorized();
 
-  await db
-    .update(youtubeAccounts)
-    .set({ cookieEncrypted: null })
-    .where(eq(youtubeAccounts.userId, user.id));
+  await db.transaction(async (tx) => {
+    const [account] = await tx
+      .select({
+        id: youtubeAccounts.id,
+        refreshTokenEncrypted: youtubeAccounts.refreshTokenEncrypted,
+      })
+      .from(youtubeAccounts)
+      .where(eq(youtubeAccounts.userId, user.id))
+      .limit(1);
+
+    if (!account) return;
+
+    if (account.refreshTokenEncrypted) {
+      await tx
+        .update(youtubeAccounts)
+        .set({ cookieEncrypted: null })
+        .where(eq(youtubeAccounts.id, account.id));
+    } else {
+      // No queda nada que guardar: la fila solo existía por la cookie.
+      await tx
+        .delete(youtubeAccounts)
+        .where(eq(youtubeAccounts.id, account.id));
+    }
+  });
 
   return NextResponse.json({ ok: true });
 }

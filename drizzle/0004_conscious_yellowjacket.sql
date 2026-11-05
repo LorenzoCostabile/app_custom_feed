@@ -1,0 +1,1 @@
+ALTER TABLE "youtube_accounts" ALTER COLUMN "refresh_token_encrypted" DROP NOT NULL;

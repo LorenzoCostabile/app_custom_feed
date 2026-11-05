@@ -264,8 +264,16 @@ Reglas al modificar el motor:
 
 ## 9. Integración con YouTube
 
-### OAuth + API oficial
+### OAuth + API oficial (opcional)
 
+- OAuth solo aporta suscripciones (fuentes RSS de canal), playlists (colecciones)
+  y duraciones. **El feed de recomendaciones no depende de OAuth.**
+- `youtube_accounts.refresh_token_encrypted` es **nullable**: una fila puede
+  existir solo con `cookie_encrypted`. No exijas OAuth para guardar, comprobar ni
+  borrar la cookie, ni para importar recomendaciones.
+- Desconectar Google limpia los campos OAuth y conserva la cookie; borrar la
+  cookie conserva los tokens si existen. Solo se elimina la fila cuando no queda
+  ninguna de las dos cosas.
 - Suscripciones → fuentes RSS de canal.
 - Playlists → colecciones. «Ver más tarde» (`WL`) está bloqueada por la API.
 - App en modo *Prueba*: refresh token caduca a los 7 días.

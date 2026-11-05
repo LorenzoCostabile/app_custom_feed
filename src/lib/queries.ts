@@ -328,6 +328,7 @@ export type YoutubeAccountView = {
   channelTitle: string | null;
   connectedAt: Date;
   lastSyncedAt: Date | null;
+  hasOAuth: boolean;
   hasCookie: boolean;
 };
 
@@ -339,6 +340,7 @@ export async function getYoutubeAccount(
       channelTitle: youtubeAccounts.channelTitle,
       connectedAt: youtubeAccounts.connectedAt,
       lastSyncedAt: youtubeAccounts.lastSyncedAt,
+      hasOAuth: sql<boolean>`${youtubeAccounts.refreshTokenEncrypted} is not null`,
       hasCookie: sql<boolean>`${youtubeAccounts.cookieEncrypted} is not null`,
     })
     .from(youtubeAccounts)

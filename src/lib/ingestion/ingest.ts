@@ -73,6 +73,7 @@ async function resolveYoutubeAuth(userId: string): Promise<string | null> {
       .where(eq(youtubeAccounts.userId, userId))
       .limit(1);
     if (!account) return null;
+    if (!account.refreshTokenEncrypted) return null;
     return await getValidAccessToken(account);
   } catch {
     return null;

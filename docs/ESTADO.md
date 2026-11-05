@@ -13,8 +13,8 @@ El MVP está **funcionalmente completo en su bucle principal**: ingesta RSS,
 edición diaria con motivos, biblioteca, hemeroteca, colecciones, historial,
 multiusuario y configuración por fuente. La arquitectura es sencilla y coherente
 para un NAS. Lo que falta no es «más app», sino **cerrar la operación diaria**
-(cron, publicación, copias) y **estabilizar la integración real de YouTube**, que
-ahora mismo está bloqueada por una cookie caducada.
+(copias programadas y despliegue en el NAS) y **estabilizar la integración real
+de YouTube** (persistir la rotación de la cookie).
 
 ---
 
@@ -237,8 +237,13 @@ Deuda:
 
 **Dos vías independientes:**
 
-1. **OAuth + API oficial** (fiable): suscripciones como fuentes RSS de canal,
-   playlists y «Ver más tarde» como colecciones, duraciones vía `videos.list`.
+1. **OAuth + API oficial** (opcional y fiable): suscripciones como fuentes RSS de
+   canal, playlists y «Ver más tarde» como colecciones, duraciones vía
+   `videos.list`.
+   - **No hace falta para el feed.** La fila de `youtube_accounts` puede existir
+     solo con `cookie_encrypted`; `refresh_token_encrypted` es nullable. Se puede
+     guardar, comprobar y usar la cookie sin configurar Google Cloud.
+   - Desconectar Google conserva la cookie; borrar la cookie conserva los tokens.
    - Límites conocidos: app en modo *Prueba* → refresh token a **7 días**; cuentas
      de marca → `404 channelNotFound`; «Ver más tarde» (`WL`) bloqueada por la
      API.
@@ -260,8 +265,9 @@ Deuda:
      `cookie` copiada a mano; normaliza y descarta cookies ajenas a YouTube.
    - **Guardado con validación previa:** `POST /api/youtube/cookie` valida contra
      YouTube **antes** de cifrar y guardar; si la cookie es inválida devuelve
-     `400` y no sobrescribe la anterior. `GET /api/youtube/cookie/status`
-     informa del estado en vivo.
+     `400` y no sobrescribe la anterior. Si el usuario no tenía fila en
+     `youtube_accounts`, la crea sin tokens de Google. `GET
+     /api/youtube/cookie/status` informa del estado en vivo.
    - **Regla:** si el feed no está accesible, esa fuente aporta cero ítems. No se
      sustituye ni se rellena el hueco con otras fuentes.
    - **Riesgo abierto:** YouTube rota `__Secure-1PSIDTS` al usar la sesión y
@@ -333,6 +339,10 @@ Verificado en la última sesión:
   importó 40 vídeos (38 nuevos) y la fuente quedó en `last_status = ok`.
 - La validación rechaza cookies inventadas (`session.logged_in` no basta) y
   distingue fallo de red de cookie caducada.
+- **OAuth y cookie desacoplados (migración `0004`):** un usuario sin tokens de
+  Google pudo tener cookie, comprobar su estado y pedir recomendaciones (el feed
+  respondió `invalid` con una cookie sintética, como debía); al borrar la cookie
+  desapareció la fila de `youtube_accounts` y no quedó ningún residuo OAuth.
 - **Planificador:** `crond` del servicio `scheduler` ejecutó un trabajo de prueba
   cada minuto y escribió en el log del contenedor; `docker compose config`
   valida el YAML.

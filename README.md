@@ -131,6 +131,10 @@ Cada usuario puede conectar su cuenta de YouTube para importar sus
 colecciones), con la duración de cada vídeo. La app nunca reproduce vídeos en
 móvil ni lee tu actividad.
 
+> **Es opcional.** OAuth solo aporta lo anterior. El **feed de recomendaciones**
+> de la portada funciona únicamente con la cookie y no necesita Google Cloud; ver
+> más abajo. Si no configuras OAuth, añade las fuentes que quieras a mano.
+
 1. En Google Cloud habilita **YouTube Data API v3** y crea un **cliente OAuth de
    tipo Web** con el redirect URI `http://TU_DOMINIO/api/youtube/callback`.
    La **API key** es opcional: solo hace falta si quieres leer las duraciones de
@@ -146,7 +150,7 @@ móvil ni lee tu actividad.
    # GOOGLE_API_KEY=...
    ```
 
-3. Reinicia la app y entra en **Fuentes → Conectar YouTube**. Tras autorizar,
+3. Reinicia la app y entra en **Fuentes → Conectar Google**. Tras autorizar,
    se importan suscripciones y colecciones. Usa **Sincronizar ahora** cuando
    quieras refrescar; las colecciones se ven en **Colecciones**.
 
@@ -158,7 +162,9 @@ refresh token caduca a los 7 días: revisa **Sincronizar ahora** o publica la ap
 
 Además de la API oficial, puedes importar tu **feed real de recomendaciones** de
 YouTube (la portada de youtube.com). Se obtiene con la librería `youtubei.js`
-(InnerTube), que **requiere tu cookie de sesión**.
+(InnerTube), que **requiere tu cookie de sesión**. No hace falta configurar
+OAuth de Google ni conectar la cuenta: la cookie es independiente y se guarda
+aunque no haya conexión con Google.
 
 **La forma recomendada en Windows** es el asistente local
 [`tools/youtube-cookie-wizard/`](tools/youtube-cookie-wizard/LEEME.md):
@@ -167,8 +173,8 @@ YouTube (la portada de youtube.com). Se obtiene con la librería `youtubei.js`
    `tools/youtube-cookie-wizard/Iniciar.bat`.
 2. El asistente instala `yt-dlp` en una carpeta aislada, exporta la cookie,
    **comprueba la sesión contra YouTube** y la envía a la app.
-3. Si prefieres hacerlo a mano, en **Fuentes → Cuenta de YouTube** puedes pegar
-   la cabecera `cookie` o subir un archivo `cookies.txt` de Netscape.
+3. Si prefieres hacerlo a mano, en **Fuentes → Feed de recomendaciones** puedes
+   pegar la cabecera `cookie` o subir un archivo `cookies.txt` de Netscape.
 
 La app valida la cookie antes de guardarla y la almacena cifrada con
 `TOKEN_ENCRYPTION_KEY`. El botón **Comprobar cookie** vuelve a validarla y

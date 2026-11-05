@@ -29,6 +29,13 @@
       "when": 1792435105158,
       "tag": "0003_magical_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793902084645,
+      "tag": "0004_conscious_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

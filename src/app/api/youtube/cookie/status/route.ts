@@ -27,8 +27,8 @@ export async function GET() {
   if (!account) {
     return NextResponse.json({
       hasCookie: false,
-      status: "no_account",
-      message: "Conecta tu cuenta de YouTube primero.",
+      status: "missing",
+      message: "No hay ninguna cookie guardada.",
       checkedAt: new Date().toISOString(),
     });
   }

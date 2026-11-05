@@ -29,6 +29,12 @@ asigna un tema inventado.
 
 ## 3. Ciclo de vida de la cookie
 
+OAuth y cookie son **independientes**. La cookie se guarda en
+`youtube_accounts.cookie_encrypted` y esa fila puede existir solo por la cookie:
+`refresh_token_encrypted` es nullable. No hace falta configurar Google Cloud ni
+conectar la cuenta para usar el feed. Al revés tampoco: desconectar Google
+conserva la cookie, y borrar la cookie no toca los tokens OAuth.
+
 ```
 navegador → yt-dlp → cookies.txt → asistente → POST /api/youtube/cookie
                                                     │
@@ -59,7 +65,8 @@ navegador → yt-dlp → cookies.txt → asistente → POST /api/youtube/cookie
    - `error`: fallo de red o del protocolo. **No se guarda** y se reintenta; no
      se confunde con una cookie caducada.
 4. **Guardar.** Se cifra con `TOKEN_ENCRYPTION_KEY` y se actualiza
-   `youtube_accounts.cookie_encrypted`. Nunca se registra el valor.
+   `youtube_accounts.cookie_encrypted`; si el usuario no tenía fila, se crea
+   (sin tokens de Google). Nunca se registra el valor.
 5. **Comprobar.** `GET /api/youtube/cookie/status` hace la misma validación en
    vivo y devuelve estado + `videoCount`. Se llama desde el botón «Comprobar
    cookie» y desde el asistente, no en cada carga de página.
@@ -86,10 +93,13 @@ falta el secundario, se guarda un aviso y la validación en vivo decide.
 | `POST` | `/api/youtube/cookie` | `{ ok, status, videoCount, cookieCount, warnings }` |
 | `DELETE` | `/api/youtube/cookie` | `{ ok: true }` |
 
-`status` ∈ `missing` · `no_account` · `valid` · `no_feed` · `invalid` · `error`.
+`status` ∈ `missing` · `valid` · `no_feed` · `invalid` · `error`.
 
 Códigos de error del `POST`: `400` si falta la sesión o la cookie está caducada;
 `502` si no se pudo comprobar contra YouTube; `401` sin sesión de Atención.
+
+`DELETE` borra solo la cookie. Si la fila también tenía OAuth, se conservan los
+tokens; si era una fila solo-cookie, se elimina.
 
 Todas las consultas van filtradas por `user_id`. No se devuelve la cookie ni
 fragmentos de ella.

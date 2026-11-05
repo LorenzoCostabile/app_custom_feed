@@ -9,6 +9,12 @@ import { refreshAccessToken } from "./oauth";
 export async function getValidAccessToken(
   account: YoutubeAccount,
 ): Promise<string> {
+  if (!account.refreshTokenEncrypted) {
+    throw new Error(
+      "Esta cuenta de YouTube no tiene conexión con Google (solo cookie del feed).",
+    );
+  }
+
   const now = Date.now();
   const stillValid =
     account.accessTokenEncrypted &&

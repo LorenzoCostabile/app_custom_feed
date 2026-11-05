@@ -23,9 +23,12 @@ export async function POST() {
     .where(eq(youtubeAccounts.userId, user.id))
     .limit(1);
 
-  if (!account) {
+  if (!account?.refreshTokenEncrypted) {
     return NextResponse.json(
-      { error: "Conecta tu cuenta de YouTube primero." },
+      {
+        error:
+          "Conecta tu cuenta de Google para importar suscripciones y playlists. El feed de recomendaciones funciona solo con la cookie.",
+      },
       { status: 400 },
     );
   }

@@ -26,7 +26,7 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 const YOUTUBE_NOTICES: Record<string, string> = {
-  connected: "Cuenta de YouTube conectada y sincronizada.",
+  connected: "Cuenta de Google conectada y sincronizada.",
   error: "No se pudo conectar la cuenta de YouTube.",
   state: "La verificación de seguridad de OAuth falló. Inténtalo de nuevo.",
 };
@@ -90,7 +90,7 @@ export default async function FuentesPage({
 
       <YoutubePanel
         configured={isYoutubeConfigured()}
-        connected={Boolean(youtubeAccount)}
+        connected={Boolean(youtubeAccount?.hasOAuth)}
         channelTitle={youtubeAccount?.channelTitle ?? null}
         lastSyncedAt={youtubeAccount?.lastSyncedAt?.toISOString() ?? null}
         notice={notice}
